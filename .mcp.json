@@ -1,0 +1,18 @@
+{
+    "mcpServers": {
+        "gems": {
+            "type": "stdio",
+            "command": "node",
+            "args": [
+                "./packages/gems-mcp/dist/index.js",
+                "--project",
+                "dummy-rails:./fixtures/dummy-rails",
+                "--project",
+                "dummy-gem:./fixtures/dummy-gem",
+                "--quotes",
+                "double"
+            ],
+            "env": {}
+        }
+    }
+}
