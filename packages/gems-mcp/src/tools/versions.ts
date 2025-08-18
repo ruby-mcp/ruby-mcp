@@ -13,6 +13,7 @@ import {
   type GemDependenciesInput,
 } from '../schemas.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { GemVersion } from '../types.js';
 
 export interface VersionsToolOptions {
   client: RubyGemsClient;
@@ -288,7 +289,7 @@ export class VersionsTool {
 
   private formatVersionResult(
     gemName: string,
-    version: any,
+    version: GemVersion,
     includePrerelease?: boolean
   ): CallToolResult {
     const releaseDate = new Date(version.created_at).toLocaleDateString();

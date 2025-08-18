@@ -625,5 +625,16 @@ gem 'pg'
       // Tool should preserve existing quote style (double quotes in this case)
       expect(updatedContent).toContain('gem "rails", "~> 7.0.0"');
     });
+
+    it('should handle file not found errors', async () => {
+      // Try to unpin from a non-existent file
+      const result = await tool.executeUnpin({
+        gem_name: 'rails',
+        file_path: '/nonexistent/path/Gemfile',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error: File not found');
+    });
   });
 });

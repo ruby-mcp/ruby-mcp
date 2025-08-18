@@ -164,7 +164,7 @@ export class RubyGemsClient {
     try {
       // Use the versions endpoint instead of latest.json to get full version details
       const versionsResponse = await this.getGemVersions(gemName);
-      
+
       if (!versionsResponse.success) {
         return {
           data: {} as GemVersion,
@@ -184,9 +184,10 @@ export class RubyGemsClient {
 
       // Sort by creation date and get the latest version
       const sortedVersions = versions.sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
-      
+
       const latestVersion = sortedVersions[0];
 
       if (this.cacheEnabled) {
@@ -243,7 +244,7 @@ export class RubyGemsClient {
     }
   }
 
-  private async makeRequest(url: string): Promise<ApiResponse<any>> {
+  private async makeRequest(url: string): Promise<ApiResponse<unknown>> {
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
     if (timeSinceLastRequest < this.rateLimitDelay) {

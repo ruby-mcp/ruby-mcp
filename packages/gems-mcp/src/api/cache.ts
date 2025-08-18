@@ -5,7 +5,7 @@
 import type { CacheEntry } from '../types.js';
 
 export class ApiCache {
-  private cache = new Map<string, CacheEntry<any>>();
+  private cache = new Map<string, CacheEntry<unknown>>();
   private defaultTtl: number;
 
   constructor(defaultTtl: number = 5 * 60 * 1000) {
@@ -72,7 +72,10 @@ export class ApiCache {
     };
   }
 
-  static generateKey(endpoint: string, params?: Record<string, any>): string {
+  static generateKey(
+    endpoint: string,
+    params?: Record<string, unknown>
+  ): string {
     const baseKey = endpoint.toLowerCase();
 
     if (!params || Object.keys(params).length === 0) {

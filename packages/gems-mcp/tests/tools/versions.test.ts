@@ -339,17 +339,19 @@ describe('VersionsTool', () => {
           'https://rubygems.org/api/v1/versions/missing-downloads.json',
           () => {
             // This simulates a version response with missing downloads_count
-            return HttpResponse.json([{
-              authors: 'Test Author',
-              built_at: '2024-12-26T18:52:12.345Z',
-              created_at: '2024-12-26T18:52:12.345Z',
-              // downloads_count is intentionally missing
-              metadata: {},
-              number: '1.2.3',
-              platform: 'ruby',
-              prerelease: false,
-              summary: 'Test gem with missing downloads'
-            }]);
+            return HttpResponse.json([
+              {
+                authors: 'Test Author',
+                built_at: '2024-12-26T18:52:12.345Z',
+                created_at: '2024-12-26T18:52:12.345Z',
+                // downloads_count is intentionally missing
+                metadata: {},
+                number: '1.2.3',
+                platform: 'ruby',
+                prerelease: false,
+                summary: 'Test gem with missing downloads',
+              },
+            ]);
           }
         )
       );
@@ -436,6 +438,101 @@ describe('VersionsTool', () => {
 
       // Restore original method
       client.getReverseDependencies = originalGetReverseDependencies;
+    });
+  });
+
+  describe('version formatting edge cases', () => {
+    it('should format version with all optional fields', async () => {
+      // Mock response with a version that has all optional fields
+      const mockVersion = {
+        number: '1.0.0',
+        created_at: '2023-01-01T00:00:00.000Z',
+        platform: 'ruby',
+        downloads_count: 1000,
+        authors: 'John Doe, Jane Smith',
+        ruby_version: '>= 2.7.0',
+        rubygems_version: '>= 3.0.0',
+        licenses: ['MIT', 'Apache-2.0'],
+      };
+
+      const mockClient = {
+        getLatestVersion: vi.fn().mockResolvedValue({
+          data: mockVersion,
+          success: true,
+        }),
+      } as unknown as RubyGemsClient;
+
+      const tool = new VersionsTool({ client: mockClient });
+      const result = await tool.executeGetLatestVersion({
+        gem_name: 'full-gem',
+        include_prerelease: false,
+      });
+
+      expect(result.isError).toBeUndefined();
+      const content = result.content[0].text;
+      expect(content).toContain('Authors:** John Doe, Jane Smith');
+      expect(content).toContain('Ruby Version:** >= 2.7.0');
+      expect(content).toContain('RubyGems Version:** >= 3.0.0');
+      expect(content).toContain('License:** MIT, Apache-2.0');
+    });
+
+    it('should format version with minimal fields', async () => {
+      // Mock response with a version that has minimal fields
+      const mockVersion = {
+        number: '1.0.0',
+        created_at: '2023-01-01T00:00:00.000Z',
+        platform: 'ruby',
+        downloads_count: 1000,
+        // No authors, ruby_version, rubygems_version, or licenses
+      };
+
+      const mockClient = {
+        getLatestVersion: vi.fn().mockResolvedValue({
+          data: mockVersion,
+          success: true,
+        }),
+      } as unknown as RubyGemsClient;
+
+      const tool = new VersionsTool({ client: mockClient });
+      const result = await tool.executeGetLatestVersion({
+        gem_name: 'minimal-gem',
+        include_prerelease: false,
+      });
+
+      expect(result.isError).toBeUndefined();
+      const content = result.content[0].text;
+      expect(content).not.toContain('Authors:**');
+      expect(content).not.toContain('Ruby Version:**');
+      expect(content).not.toContain('RubyGems Version:**');
+      expect(content).not.toContain('License:**');
+    });
+
+    it('should handle version formatting with empty licenses array', async () => {
+      // Mock response with a version that has empty licenses array
+      const mockVersion = {
+        number: '1.0.0',
+        created_at: '2023-01-01T00:00:00.000Z',
+        platform: 'ruby',
+        downloads_count: 1000,
+        licenses: [], // Empty array should not show license section
+      };
+
+      const mockClient = {
+        getLatestVersion: vi.fn().mockResolvedValue({
+          data: mockVersion,
+          success: true,
+        }),
+      } as unknown as RubyGemsClient;
+
+      const tool = new VersionsTool({ client: mockClient });
+      const result = await tool.executeGetLatestVersion({
+        gem_name: 'empty-licenses-gem',
+        include_prerelease: false,
+      });
+
+      expect(result.isError).toBeUndefined();
+      const content = result.content[0].text;
+      expect(content).not.toContain('License:**'); // Empty licenses should not show license
     });
   });
 });

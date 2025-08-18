@@ -423,5 +423,18 @@ end
         expect(content).toContain(`"${pin_type} 1.0.0"`);
       }
     });
+
+    it('should handle file not found errors', async () => {
+      // Try to add to a non-existent file in a read-only path
+      const result = await tool.executeAddToGemfile({
+        gem_name: 'rails',
+        version: '7.0.0',
+        pin_type: '~>',
+        file_path: '/nonexistent/path/Gemfile',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error: File not found');
+    });
   });
 });

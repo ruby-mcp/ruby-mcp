@@ -36,7 +36,7 @@ describe('Project Arguments Parsing', () => {
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-      
+
       if (arg.startsWith('--project=')) {
         const projectDef = arg.substring('--project='.length);
         const colonIndex = projectDef.indexOf(':');
@@ -311,9 +311,12 @@ describe('Project Arguments Parsing', () => {
 
     it('should parse multiple projects with space-separated format', () => {
       const args = [
-        '--project', 'app1:/path/to/app1',
-        '--project', 'app2:/path/to/app2',
-        '--project', 'lib:/path/to/lib',
+        '--project',
+        'app1:/path/to/app1',
+        '--project',
+        'app2:/path/to/app2',
+        '--project',
+        'lib:/path/to/lib',
       ];
       const projects = parseProjectArgs(args);
 
@@ -337,9 +340,11 @@ describe('Project Arguments Parsing', () => {
     it('should mix equals and space-separated formats', () => {
       const args = [
         '--project=app1:/path/to/app1',
-        '--project', 'app2:/path/to/app2',
+        '--project',
+        'app2:/path/to/app2',
         '--project=app3:/path/to/app3',
-        '--project', 'app4:/path/to/app4',
+        '--project',
+        'app4:/path/to/app4',
       ];
       const projects = parseProjectArgs(args);
 
@@ -353,9 +358,11 @@ describe('Project Arguments Parsing', () => {
     it('should handle space-separated format with other arguments', () => {
       const args = [
         '--verbose',
-        '--project', 'app:/path/to/app',
+        '--project',
+        'app:/path/to/app',
         '--debug',
-        '--project', 'lib:/path/to/lib',
+        '--project',
+        'lib:/path/to/lib',
         '--other-flag',
       ];
       const projects = parseProjectArgs(args);
