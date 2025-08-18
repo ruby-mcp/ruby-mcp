@@ -183,8 +183,8 @@ Add to your Claude Desktop configuration:
 {
   "mcpServers": {
     "gems-mcp": {
-      "command": "node",
-      "args": ["path/to/gems-mcp/dist/index.js"]
+      "command": "npx",
+      "args": ["@ruby-mcp/gems-mcp"]
     }
   }
 }
@@ -198,17 +198,17 @@ The gems-mcp server supports managing multiple Ruby/Rails projects simultaneousl
 
 ```bash
 # Single project (uses current directory as default)
-node dist/index.js
+npx @ruby-mcp/gems-mcp
 
 # Multiple projects with named arguments
-node dist/index.js --project myapp:/path/to/myapp --project api:/path/to/api --project gem:/path/to/gem
+npx @ruby-mcp/gems-mcp --project myapp:/path/to/myapp --project api:/path/to/api --project gem:/path/to/gem
 
 # Set global quote style preference
-node dist/index.js --quotes=single
-node dist/index.js --quotes=double
+npx @ruby-mcp/gems-mcp --quotes=single
+npx @ruby-mcp/gems-mcp --quotes=double
 
 # Combine projects and quotes
-node dist/index.js --project myapp:/path/to/myapp --quotes=double
+npx @ruby-mcp/gems-mcp --project myapp:/path/to/myapp --quotes=double
 ```
 
 #### In Claude Desktop Configuration
@@ -217,9 +217,9 @@ node dist/index.js --project myapp:/path/to/myapp --quotes=double
 {
   "mcpServers": {
     "gems-mcp": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "path/to/gems-mcp/dist/index.js",
+        "@ruby-mcp/gems-mcp",
         "--project", "webapp:/home/user/projects/webapp",
         "--project", "api:/home/user/projects/api",
         "--project", "gem:/home/user/projects/my-gem",
@@ -279,10 +279,10 @@ Set the default quote style for all gem management operations:
 
 ```bash
 # Use single quotes for all gem declarations (default)
-node dist/index.js --quotes=single
+npx @ruby-mcp/gems-mcp --quotes=single
 
 # Use double quotes for all gem declarations
-node dist/index.js --quotes=double
+npx @ruby-mcp/gems-mcp --quotes=double
 ```
 
 #### Per-Tool Quote Override
