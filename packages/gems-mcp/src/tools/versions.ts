@@ -13,6 +13,7 @@ import {
   type GemDependenciesInput,
 } from '../schemas.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { GemVersion } from '../types.js';
 
 export interface VersionsToolOptions {
   client: RubyGemsClient;
