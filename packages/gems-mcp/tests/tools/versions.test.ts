@@ -460,7 +460,7 @@ describe('VersionsTool', () => {
           data: mockVersion,
           success: true,
         }),
-      } as any;
+      } as unknown as RubyGemsClient;
 
       const tool = new VersionsTool({ client: mockClient });
       const result = await tool.executeGetLatestVersion({
@@ -491,7 +491,7 @@ describe('VersionsTool', () => {
           data: mockVersion,
           success: true,
         }),
-      } as any;
+      } as unknown as RubyGemsClient;
 
       const tool = new VersionsTool({ client: mockClient });
       const result = await tool.executeGetLatestVersion({
@@ -522,7 +522,7 @@ describe('VersionsTool', () => {
           data: mockVersion,
           success: true,
         }),
-      } as any;
+      } as unknown as RubyGemsClient;
 
       const tool = new VersionsTool({ client: mockClient });
       const result = await tool.executeGetLatestVersion({

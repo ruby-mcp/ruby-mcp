@@ -2,7 +2,7 @@
  * Tests for ProjectManager
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -294,7 +294,7 @@ describe('ProjectManager', () => {
     it('should validate successfully with empty projects array', async () => {
       // Test the case where no projects are provided
       const manager = new ProjectManager([]);
-      
+
       // Should not throw any errors
       await expect(manager.validateProjects()).resolves.not.toThrow();
     });

@@ -55,11 +55,11 @@ describe('ApiCache additional coverage', () => {
     it('should remove expired entries and return count', () => {
       // Set a very short TTL (1ms)
       const shortTtlCache = new ApiCache(1);
-      
+
       // Add some items
       shortTtlCache.set('item1', 'value1');
       shortTtlCache.set('item2', 'value2');
-      
+
       // Wait for expiration (use a longer wait to ensure expiration)
       return new Promise<void>((resolve) => {
         setTimeout(() => {
@@ -74,7 +74,7 @@ describe('ApiCache additional coverage', () => {
     it('should use custom TTL when provided', () => {
       // Test custom TTL branch
       cache.set('custom-ttl-key', 'value', 2000); // 2 second custom TTL
-      
+
       expect(cache.has('custom-ttl-key')).toBe(true);
       expect(cache.get('custom-ttl-key')).toBe('value');
     });
