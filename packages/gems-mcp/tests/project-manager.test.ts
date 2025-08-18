@@ -2,7 +2,7 @@
  * Tests for ProjectManager
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -274,6 +274,29 @@ describe('ProjectManager', () => {
       // Both should be valid (Node.js normalizes path separators)
       expect(resolved1).toBe(join(project1Dir, 'config/database.yml'));
       expect(resolved2).toBe(join(project1Dir, 'config\\\\database.yml'));
+    });
+  });
+
+  describe('validateProjects edge cases', () => {
+    it('should handle multiple project validation errors', async () => {
+      // Test with multiple non-existent projects to trigger multiple error paths
+      const projects: ProjectConfig[] = [
+        { name: 'missing1', path: '/nonexistent/path1' },
+        { name: 'missing2', path: '/nonexistent/path2' },
+      ];
+      const manager = new ProjectManager(projects);
+
+      await expect(manager.validateProjects()).rejects.toThrow(
+        'Project validation failed'
+      );
+    });
+
+    it('should validate successfully with empty projects array', async () => {
+      // Test the case where no projects are provided
+      const manager = new ProjectManager([]);
+      
+      // Should not throw any errors
+      await expect(manager.validateProjects()).resolves.not.toThrow();
     });
   });
 });
