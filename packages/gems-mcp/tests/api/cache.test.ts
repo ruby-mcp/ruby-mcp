@@ -43,7 +43,10 @@ describe('ApiCache additional coverage', () => {
     });
 
     it('should handle null params', () => {
-      const key = ApiCache.generateKey('test', null as any);
+      const key = ApiCache.generateKey(
+        'test',
+        null as unknown as Record<string, unknown>
+      );
       expect(key).toBe('test');
     });
   });

@@ -25,7 +25,7 @@ function parseCommandLineArgs(args: string[]) {
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    
+
     if (arg.startsWith('--project=')) {
       const projectDef = arg.substring('--project='.length);
       const colonIndex = projectDef.indexOf(':');
@@ -125,7 +125,7 @@ describe('Command Line Arguments Parsing', () => {
     it('should handle case insensitive quotes values', () => {
       const args1 = ['--quotes=SINGLE'];
       const args2 = ['--quotes=Double'];
-      
+
       const { quoteConfig: config1 } = parseCommandLineArgs(args1);
       const { quoteConfig: config2 } = parseCommandLineArgs(args2);
 
@@ -164,7 +164,7 @@ describe('Command Line Arguments Parsing', () => {
     it('should handle quotes with quote characters', () => {
       const args1 = ['--quotes', "'"];
       const args2 = ['--quotes', '"'];
-      
+
       const { quoteConfig: config1 } = parseCommandLineArgs(args1);
       const { quoteConfig: config2 } = parseCommandLineArgs(args2);
 
@@ -210,9 +210,12 @@ describe('Command Line Arguments Parsing', () => {
 
     it('should parse both projects and quotes in space-separated format', () => {
       const args = [
-        '--project', 'app1:/path/to/app1',
-        '--quotes', 'double',
-        '--project', 'app2:/path/to/app2',
+        '--project',
+        'app1:/path/to/app1',
+        '--quotes',
+        'double',
+        '--project',
+        'app2:/path/to/app2',
       ];
       const { projects, quoteConfig } = parseCommandLineArgs(args);
 
@@ -228,8 +231,10 @@ describe('Command Line Arguments Parsing', () => {
     it('should handle mixed equals and space-separated formats', () => {
       const args = [
         '--project=app1:/path/to/app1',
-        '--quotes', 'double',
-        '--project', 'app2:/path/to/app2',
+        '--quotes',
+        'double',
+        '--project',
+        'app2:/path/to/app2',
         '--quotes=single',
       ];
       const { projects, quoteConfig } = parseCommandLineArgs(args);
@@ -253,18 +258,18 @@ describe('Command Line Arguments Parsing', () => {
         '--project',
         'dummy-gem:./fixtures/dummy-gem',
         '--quotes',
-        'double'
+        'double',
       ];
       const { projects, quoteConfig } = parseCommandLineArgs(args);
 
       expect(projects).toHaveLength(2);
-      expect(projects[0]).toEqual({ 
-        name: 'dummy-rails', 
-        path: './fixtures/dummy-rails' 
+      expect(projects[0]).toEqual({
+        name: 'dummy-rails',
+        path: './fixtures/dummy-rails',
       });
-      expect(projects[1]).toEqual({ 
-        name: 'dummy-gem', 
-        path: './fixtures/dummy-gem' 
+      expect(projects[1]).toEqual({
+        name: 'dummy-gem',
+        path: './fixtures/dummy-gem',
       });
       expect(quoteConfig).toEqual({
         gemfile: 'double',
@@ -275,9 +280,11 @@ describe('Command Line Arguments Parsing', () => {
     it('should ignore other arguments while parsing projects and quotes', () => {
       const args = [
         '--verbose',
-        '--project', 'app:/path/to/app',
+        '--project',
+        'app:/path/to/app',
         '--debug',
-        '--quotes', 'double',
+        '--quotes',
+        'double',
         '--other-flag',
         'some-value',
       ];

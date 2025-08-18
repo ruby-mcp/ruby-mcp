@@ -293,10 +293,13 @@ describe('RubyGemsClient', () => {
       // Create a handler that returns 429 for rate limiting
       server.use(
         http.get('https://rubygems.org/api/v1/search.json', () => {
-          return new HttpResponse(JSON.stringify({ error: 'Rate limit exceeded' }), {
-            status: 429,
-            headers: { 'Content-Type': 'application/json' }
-          });
+          return new HttpResponse(
+            JSON.stringify({ error: 'Rate limit exceeded' }),
+            {
+              status: 429,
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
         })
       );
 
@@ -315,12 +318,18 @@ describe('RubyGemsClient', () => {
     it('should handle getReverseDependencies API errors', async () => {
       // Create a handler that returns a 500 error
       server.use(
-        http.get('https://rubygems.org/api/v1/gems/*/reverse_dependencies.json', () => {
-          return new HttpResponse(JSON.stringify({ error: 'Internal server error' }), {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' }
-          });
-        })
+        http.get(
+          'https://rubygems.org/api/v1/gems/*/reverse_dependencies.json',
+          () => {
+            return new HttpResponse(
+              JSON.stringify({ error: 'Internal server error' }),
+              {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+              }
+            );
+          }
+        )
       );
 
       const client = new RubyGemsClient({
@@ -337,12 +346,15 @@ describe('RubyGemsClient', () => {
     it('should handle getReverseDependencies network errors', async () => {
       // Create a handler that returns a 502 error (bad gateway)
       server.use(
-        http.get('https://rubygems.org/api/v1/gems/*/reverse_dependencies.json', () => {
-          return new HttpResponse(null, {
-            status: 502,
-            statusText: 'Bad Gateway'
-          });
-        })
+        http.get(
+          'https://rubygems.org/api/v1/gems/*/reverse_dependencies.json',
+          () => {
+            return new HttpResponse(null, {
+              status: 502,
+              statusText: 'Bad Gateway',
+            });
+          }
+        )
       );
 
       const client = new RubyGemsClient({

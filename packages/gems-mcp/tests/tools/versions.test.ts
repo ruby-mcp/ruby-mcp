@@ -339,17 +339,19 @@ describe('VersionsTool', () => {
           'https://rubygems.org/api/v1/versions/missing-downloads.json',
           () => {
             // This simulates a version response with missing downloads_count
-            return HttpResponse.json([{
-              authors: 'Test Author',
-              built_at: '2024-12-26T18:52:12.345Z',
-              created_at: '2024-12-26T18:52:12.345Z',
-              // downloads_count is intentionally missing
-              metadata: {},
-              number: '1.2.3',
-              platform: 'ruby',
-              prerelease: false,
-              summary: 'Test gem with missing downloads'
-            }]);
+            return HttpResponse.json([
+              {
+                authors: 'Test Author',
+                built_at: '2024-12-26T18:52:12.345Z',
+                created_at: '2024-12-26T18:52:12.345Z',
+                // downloads_count is intentionally missing
+                metadata: {},
+                number: '1.2.3',
+                platform: 'ruby',
+                prerelease: false,
+                summary: 'Test gem with missing downloads',
+              },
+            ]);
           }
         )
       );

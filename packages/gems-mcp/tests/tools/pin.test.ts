@@ -630,7 +630,7 @@ gem 'pg'
       // Try to unpin from a non-existent file
       const result = await tool.executeUnpin({
         gem_name: 'rails',
-        file_path: '/nonexistent/path/Gemfile'
+        file_path: '/nonexistent/path/Gemfile',
       });
 
       expect(result.isError).toBe(true);

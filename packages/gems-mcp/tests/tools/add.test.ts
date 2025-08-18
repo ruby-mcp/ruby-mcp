@@ -430,7 +430,7 @@ end
         gem_name: 'rails',
         version: '7.0.0',
         pin_type: '~>',
-        file_path: '/nonexistent/path/Gemfile'
+        file_path: '/nonexistent/path/Gemfile',
       });
 
       expect(result.isError).toBe(true);

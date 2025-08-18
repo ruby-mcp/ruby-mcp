@@ -288,7 +288,7 @@ export class VersionsTool {
 
   private formatVersionResult(
     gemName: string,
-    version: any,
+    version: GemVersion,
     includePrerelease?: boolean
   ): CallToolResult {
     const releaseDate = new Date(version.created_at).toLocaleDateString();
