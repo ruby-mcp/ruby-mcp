@@ -1,7 +1,7 @@
 {
   "name": "@ruby-mcp/gems-mcp",
   "version": "0.1.2",
-  "description": "MCP server for interacting with RubyGems.org API - search gems, get versions, and detailed information",
+  "description": "MCP server for interacting with RubyGems.org API, Gemfiles, and gemspecs - search gems, get versions, and manage dependencies",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

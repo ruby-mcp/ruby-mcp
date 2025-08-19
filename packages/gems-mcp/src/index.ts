@@ -10,6 +10,9 @@
 import { Command } from 'commander';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import { RubyGemsClient } from './api/client.js';
 import { SearchTool } from './tools/search.js';
 import { DetailsTool } from './tools/details.js';
@@ -283,13 +286,37 @@ interface ProgramOptions {
   quotes?: string;
 }
 
+/**
+ * Get package info from package.json
+ */
+function getPackageInfo(): { version: string; description: string } {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const packagePath = join(__dirname, '..', 'package.json');
+    const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
+    return {
+      version: packageJson.version,
+      description: packageJson.description,
+    };
+  } catch (error) {
+    // Fallback values if package.json can't be read
+    return {
+      version: '0.1.2',
+      description:
+        'MCP server for interacting with RubyGems.org API, Gemfiles, and gemspecs',
+    };
+  }
+}
+
 function setupCommander(): Command {
   const program = new Command();
+  const { version, description } = getPackageInfo();
 
   program
     .name('gems-mcp')
-    .description('MCP server for interacting with RubyGems.org API')
-    .version('0.1.1')
+    .description(description)
+    .version(version)
     .option(
       '-p, --project <project...>',
       'Configure projects. Format: name:path or path (can be specified multiple times)'
