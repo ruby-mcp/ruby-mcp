@@ -7,6 +7,7 @@
  * and accessing detailed gem metadata from RubyGems.org.
  */
 
+import { Command } from 'commander';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { RubyGemsClient } from './api/client.js';
@@ -277,18 +278,42 @@ export class GemsServer {
 /**
  * Parse command-line arguments for project configurations and quote settings
  */
-function parseCommandLineArgs(args: string[]): {
+interface ProgramOptions {
+  project?: string[];
+  quotes?: string;
+}
+
+function setupCommander(): Command {
+  const program = new Command();
+
+  program
+    .name('gems-mcp')
+    .description('MCP server for interacting with RubyGems.org API')
+    .version('0.1.1')
+    .option(
+      '-p, --project <project...>',
+      'Configure projects. Format: name:path or path (can be specified multiple times)'
+    )
+    .option(
+      '-q, --quotes <style>',
+      'Quote style for Gemfile and Gemspec entries (single or double)'
+    )
+    .parse();
+
+  return program;
+}
+
+function parseCommandLineArgs(program: Command): {
   projects: ProjectConfig[];
   quoteConfig: QuoteConfig;
 } {
+  const options = program.opts<ProgramOptions>();
   const projects: ProjectConfig[] = [];
   let quoteConfig = { ...DEFAULT_QUOTE_CONFIG };
 
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-
-    if (arg.startsWith('--project=')) {
-      const projectDef = arg.substring('--project='.length);
+  // Parse project configurations
+  if (options.project) {
+    for (const projectDef of options.project) {
       const colonIndex = projectDef.indexOf(':');
 
       if (colonIndex === -1) {
@@ -303,70 +328,30 @@ function parseCommandLineArgs(args: string[]): {
 
         if (!name || !path) {
           console.error(
-            `Invalid project format: ${arg}. Expected --project=name:path or --project=path`
+            `Invalid project format: ${projectDef}. Expected name:path or path`
           );
           process.exit(1);
         }
 
         projects.push({ name, path });
       }
-    } else if (arg === '--project' && i + 1 < args.length) {
-      // Handle space-separated format: --project name:path
-      const projectDef = args[i + 1];
-      const colonIndex = projectDef.indexOf(':');
+    }
+  }
 
-      if (colonIndex === -1) {
-        // If no colon, treat the whole thing as a path with name derived from directory name
-        const path = projectDef;
-        const name = path.split('/').pop() || 'unnamed';
-        projects.push({ name, path });
-      } else {
-        // Split by first colon to get name:path
-        const name = projectDef.substring(0, colonIndex);
-        const path = projectDef.substring(colonIndex + 1);
-
-        if (!name || !path) {
-          console.error(
-            `Invalid project format: --project ${projectDef}. Expected --project name:path or --project path`
-          );
-          process.exit(1);
-        }
-
-        projects.push({ name, path });
-      }
-      i++; // Skip the next argument as we've consumed it
-    } else if (arg.startsWith('--quotes=')) {
-      const quoteValue = arg.substring('--quotes='.length);
-      try {
-        const quoteStyle = parseQuoteStyle(quoteValue);
-        // Apply the same quote style to both gemfile and gemspec
-        quoteConfig = {
-          gemfile: quoteStyle,
-          gemspec: quoteStyle,
-        };
-      } catch (error) {
-        console.error(
-          `Invalid quotes option: ${arg}. Expected --quotes=single or --quotes=double`
-        );
-        process.exit(1);
-      }
-    } else if (arg === '--quotes' && i + 1 < args.length) {
-      // Handle space-separated format: --quotes double
-      const quoteValue = args[i + 1];
-      try {
-        const quoteStyle = parseQuoteStyle(quoteValue);
-        // Apply the same quote style to both gemfile and gemspec
-        quoteConfig = {
-          gemfile: quoteStyle,
-          gemspec: quoteStyle,
-        };
-      } catch (error) {
-        console.error(
-          `Invalid quotes option: --quotes ${quoteValue}. Expected --quotes single or --quotes double`
-        );
-        process.exit(1);
-      }
-      i++; // Skip the next argument as we've consumed it
+  // Parse quote configuration - only if explicitly provided
+  if (options.quotes) {
+    try {
+      const quoteStyle = parseQuoteStyle(options.quotes);
+      // Apply the same quote style to both gemfile and gemspec
+      quoteConfig = {
+        gemfile: quoteStyle,
+        gemspec: quoteStyle,
+      };
+    } catch (error) {
+      console.error(
+        `Invalid quotes option: ${options.quotes}. Expected 'single' or 'double'`
+      );
+      process.exit(1);
     }
   }
 
@@ -376,10 +361,10 @@ function parseCommandLineArgs(args: string[]): {
 // Main execution
 async function main(): Promise<void> {
   try {
-    // Parse project configurations and quote settings from command line
-    const { projects: projectConfigs, quoteConfig } = parseCommandLineArgs(
-      process.argv
-    );
+    // Setup and parse command-line arguments with Commander
+    const program = setupCommander();
+    const { projects: projectConfigs, quoteConfig } =
+      parseCommandLineArgs(program);
 
     // Create project manager with configured projects
     const projectManager = new ProjectManager(projectConfigs);
@@ -406,8 +391,16 @@ async function main(): Promise<void> {
   }
 }
 
-// Only run main if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Only run main if this file is executed directly (not imported)
+// Check if this is the main module being executed
+const isMainModule = process.argv[1] && (
+  import.meta.url === `file://${process.argv[1]}` ||
+  import.meta.url.endsWith(process.argv[1]) ||
+  process.argv[1].endsWith('index.js') ||
+  process.argv[1].endsWith('gems-mcp')
+);
+
+if (isMainModule) {
   main().catch((error) => {
     console.error('Failed to start server:', error);
     process.exit(1);

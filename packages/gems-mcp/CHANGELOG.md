@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2025-01-19
+
+### Fixed
+- Fixed CLI execution when installed globally and run via npx by improving main module detection logic
+- Added support for detecting execution when binary name is 'gems-mcp'
+
 ## [0.1.1] - 2025-01-19
 
 ### Fixed

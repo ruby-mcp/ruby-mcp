@@ -1,11 +1,13 @@
 {
   "name": "@ruby-mcp/gems-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "MCP server for interacting with RubyGems.org API - search gems, get versions, and detailed information",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": "dist/index.js",
+  "bin": {
+    "gems-mcp": "dist/index.js"
+  },
   "files": [
     "dist/**/*",
     "README.md",
@@ -34,6 +36,7 @@
   "license": "ISC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "commander": "^14.0.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {

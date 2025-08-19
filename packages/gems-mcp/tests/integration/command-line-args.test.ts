@@ -3,97 +3,90 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { Command } from 'commander';
 
-// Helper function to simulate the parseCommandLineArgs function from index.ts
-function parseCommandLineArgs(args: string[]) {
+interface ProgramOptions {
+  project?: string[];
+  quotes?: string;
+}
+
+// Helper functions to simulate the commander-based parsing from index.ts
+function createProgram(): Command {
+  const program = new Command();
+
+  program
+    .name('gems-mcp')
+    .description('MCP server for interacting with RubyGems.org API')
+    .version('0.1.1')
+    .option(
+      '-p, --project <project...>',
+      'Configure projects. Format: name:path or path (can be specified multiple times)'
+    )
+    .option(
+      '-q, --quotes <style>',
+      'Quote style for Gemfile and Gemspec entries (single or double)'
+    );
+
+  return program;
+}
+
+function parseQuoteStyle(value: string) {
+  const normalized = value.toLowerCase().trim();
+  if (normalized === 'single' || normalized === "'") {
+    return 'single' as const;
+  } else if (normalized === 'double' || normalized === '"') {
+    return 'double' as const;
+  } else {
+    throw new Error(
+      `Invalid quote style: ${value}. Must be 'single' or 'double'`
+    );
+  }
+}
+
+function parseCommandLineArgs(program: Command) {
+  const options = program.opts<ProgramOptions>();
   const projects: Array<{ name: string; path: string }> = [];
   let quoteConfig = { gemfile: 'single' as const, gemspec: 'double' as const };
 
-  // Simulate parseQuoteStyle function
-  function parseQuoteStyle(value: string) {
-    const normalized = value.toLowerCase().trim();
-    if (normalized === 'single' || normalized === "'") {
-      return 'single' as const;
-    } else if (normalized === 'double' || normalized === '"') {
-      return 'double' as const;
-    } else {
-      throw new Error(
-        `Invalid quote style: ${value}. Must be 'single' or 'double'`
-      );
+  // Parse project configurations
+  if (options.project) {
+    for (const projectDef of options.project) {
+      const colonIndex = projectDef.indexOf(':');
+
+      if (colonIndex === -1) {
+        // If no colon, treat the whole thing as a path with name derived from directory name
+        const path = projectDef;
+        const name = path.split('/').pop() || 'unnamed';
+        projects.push({ name, path });
+      } else {
+        // Split by first colon to get name:path
+        const name = projectDef.substring(0, colonIndex);
+        const path = projectDef.substring(colonIndex + 1);
+
+        if (!name || !path) {
+          throw new Error(
+            `Invalid project format: ${projectDef}. Expected name:path or path`
+          );
+        }
+
+        projects.push({ name, path });
+      }
     }
   }
 
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-
-    if (arg.startsWith('--project=')) {
-      const projectDef = arg.substring('--project='.length);
-      const colonIndex = projectDef.indexOf(':');
-
-      if (colonIndex === -1) {
-        const path = projectDef;
-        const name = path.split('/').pop() || 'unnamed';
-        projects.push({ name, path });
-      } else {
-        const name = projectDef.substring(0, colonIndex);
-        const path = projectDef.substring(colonIndex + 1);
-
-        if (!name || !path) {
-          throw new Error(
-            `Invalid project format: ${arg}. Expected --project=name:path or --project=path`
-          );
-        }
-
-        projects.push({ name, path });
-      }
-    } else if (arg === '--project' && i + 1 < args.length) {
-      const projectDef = args[i + 1];
-      const colonIndex = projectDef.indexOf(':');
-
-      if (colonIndex === -1) {
-        const path = projectDef;
-        const name = path.split('/').pop() || 'unnamed';
-        projects.push({ name, path });
-      } else {
-        const name = projectDef.substring(0, colonIndex);
-        const path = projectDef.substring(colonIndex + 1);
-
-        if (!name || !path) {
-          throw new Error(
-            `Invalid project format: --project ${projectDef}. Expected --project name:path or --project path`
-          );
-        }
-
-        projects.push({ name, path });
-      }
-      i++; // Skip the next argument as we've consumed it
-    } else if (arg.startsWith('--quotes=')) {
-      const quoteValue = arg.substring('--quotes='.length);
-      try {
-        const quoteStyle = parseQuoteStyle(quoteValue);
-        quoteConfig = {
-          gemfile: quoteStyle,
-          gemspec: quoteStyle,
-        };
-      } catch (error) {
-        throw new Error(
-          `Invalid quotes option: ${arg}. Expected --quotes=single or --quotes=double`
-        );
-      }
-    } else if (arg === '--quotes' && i + 1 < args.length) {
-      const quoteValue = args[i + 1];
-      try {
-        const quoteStyle = parseQuoteStyle(quoteValue);
-        quoteConfig = {
-          gemfile: quoteStyle,
-          gemspec: quoteStyle,
-        };
-      } catch (error) {
-        throw new Error(
-          `Invalid quotes option: --quotes ${quoteValue}. Expected --quotes single or --quotes double`
-        );
-      }
-      i++; // Skip the next argument as we've consumed it
+  // Parse quote configuration - only if explicitly provided
+  if (options.quotes) {
+    try {
+      const quoteStyle = parseQuoteStyle(options.quotes);
+      // Apply the same quote style to both gemfile and gemspec
+      quoteConfig = {
+        gemfile: quoteStyle,
+        gemspec: quoteStyle,
+      };
+    } catch (error) {
+      throw new Error(
+        `Invalid quotes option: ${options.quotes}. Expected 'single' or 'double'`
+      );
     }
   }
 
@@ -101,49 +94,11 @@ function parseCommandLineArgs(args: string[]) {
 }
 
 describe('Command Line Arguments Parsing', () => {
-  describe('quotes parsing with equals format', () => {
-    it('should parse --quotes=single', () => {
-      const args = ['--quotes=single'];
-      const { quoteConfig } = parseCommandLineArgs(args);
-
-      expect(quoteConfig).toEqual({
-        gemfile: 'single',
-        gemspec: 'single',
-      });
-    });
-
-    it('should parse --quotes=double', () => {
-      const args = ['--quotes=double'];
-      const { quoteConfig } = parseCommandLineArgs(args);
-
-      expect(quoteConfig).toEqual({
-        gemfile: 'double',
-        gemspec: 'double',
-      });
-    });
-
-    it('should handle case insensitive quotes values', () => {
-      const args1 = ['--quotes=SINGLE'];
-      const args2 = ['--quotes=Double'];
-
-      const { quoteConfig: config1 } = parseCommandLineArgs(args1);
-      const { quoteConfig: config2 } = parseCommandLineArgs(args2);
-
-      expect(config1.gemfile).toBe('single');
-      expect(config2.gemfile).toBe('double');
-    });
-
-    it('should throw error for invalid quotes value', () => {
-      const args = ['--quotes=invalid'];
-
-      expect(() => parseCommandLineArgs(args)).toThrow(/Invalid quotes option/);
-    });
-  });
-
-  describe('quotes parsing with space-separated format', () => {
+  describe('quotes parsing', () => {
     it('should parse --quotes single', () => {
-      const args = ['--quotes', 'single'];
-      const { quoteConfig } = parseCommandLineArgs(args);
+      const program = createProgram();
+      program.parse(['node', 'test', '--quotes', 'single']);
+      const { quoteConfig } = parseCommandLineArgs(program);
 
       expect(quoteConfig).toEqual({
         gemfile: 'single',
@@ -152,8 +107,9 @@ describe('Command Line Arguments Parsing', () => {
     });
 
     it('should parse --quotes double', () => {
-      const args = ['--quotes', 'double'];
-      const { quoteConfig } = parseCommandLineArgs(args);
+      const program = createProgram();
+      program.parse(['node', 'test', '--quotes', 'double']);
+      const { quoteConfig } = parseCommandLineArgs(program);
 
       expect(quoteConfig).toEqual({
         gemfile: 'double',
@@ -161,63 +117,113 @@ describe('Command Line Arguments Parsing', () => {
       });
     });
 
-    it('should handle quotes with quote characters', () => {
-      const args1 = ['--quotes', "'"];
-      const args2 = ['--quotes', '"'];
+    it('should handle case insensitive quotes values', () => {
+      const program1 = createProgram();
+      program1.parse(['node', 'test', '--quotes', 'SINGLE']);
+      const { quoteConfig: config1 } = parseCommandLineArgs(program1);
 
-      const { quoteConfig: config1 } = parseCommandLineArgs(args1);
-      const { quoteConfig: config2 } = parseCommandLineArgs(args2);
+      const program2 = createProgram();
+      program2.parse(['node', 'test', '--quotes', 'Double']);
+      const { quoteConfig: config2 } = parseCommandLineArgs(program2);
 
       expect(config1.gemfile).toBe('single');
       expect(config2.gemfile).toBe('double');
     });
 
-    it('should ignore incomplete quotes args at end of list', () => {
-      const args = ['--quotes'];
-      const { quoteConfig } = parseCommandLineArgs(args);
+    it('should throw error for invalid quotes value', () => {
+      const program = createProgram();
+      program.parse(['node', 'test', '--quotes', 'invalid']);
 
-      // Should use default config
+      expect(() => parseCommandLineArgs(program)).toThrow(
+        /Invalid quotes option/
+      );
+    });
+
+    it('should handle quotes with quote characters', () => {
+      const program1 = createProgram();
+      program1.parse(['node', 'test', '--quotes', "'"]);
+      const { quoteConfig: config1 } = parseCommandLineArgs(program1);
+
+      const program2 = createProgram();
+      program2.parse(['node', 'test', '--quotes', '"']);
+      const { quoteConfig: config2 } = parseCommandLineArgs(program2);
+
+      expect(config1.gemfile).toBe('single');
+      expect(config2.gemfile).toBe('double');
+    });
+
+    it('should use default double quotes when not specified', () => {
+      const program = createProgram();
+      program.parse(['node', 'test']);
+      const { quoteConfig } = parseCommandLineArgs(program);
+
       expect(quoteConfig).toEqual({
         gemfile: 'single',
         gemspec: 'double',
       });
     });
-
-    it('should throw error for invalid space-separated quotes value', () => {
-      const args = ['--quotes', 'invalid'];
-
-      expect(() => parseCommandLineArgs(args)).toThrow(/Invalid quotes option/);
-    });
   });
 
-  describe('mixed arguments parsing', () => {
-    it('should parse both projects and quotes in equals format', () => {
-      const args = [
-        '--project=app1:/path/to/app1',
-        '--quotes=double',
-        '--project=app2:/path/to/app2',
-      ];
-      const { projects, quoteConfig } = parseCommandLineArgs(args);
+  describe('project parsing', () => {
+    it('should parse single project with name:path format', () => {
+      const program = createProgram();
+      program.parse(['node', 'test', '--project', 'app1:/path/to/app1']);
+      const { projects } = parseCommandLineArgs(program);
+
+      expect(projects).toHaveLength(1);
+      expect(projects[0]).toEqual({ name: 'app1', path: '/path/to/app1' });
+    });
+
+    it('should parse single project with path-only format', () => {
+      const program = createProgram();
+      program.parse(['node', 'test', '--project', '/path/to/myapp']);
+      const { projects } = parseCommandLineArgs(program);
+
+      expect(projects).toHaveLength(1);
+      expect(projects[0]).toEqual({ name: 'myapp', path: '/path/to/myapp' });
+    });
+
+    it('should parse multiple projects', () => {
+      const program = createProgram();
+      program.parse([
+        'node',
+        'test',
+        '--project',
+        'app1:/path/to/app1',
+        '--project',
+        'app2:/path/to/app2',
+      ]);
+      const { projects } = parseCommandLineArgs(program);
 
       expect(projects).toHaveLength(2);
       expect(projects[0]).toEqual({ name: 'app1', path: '/path/to/app1' });
       expect(projects[1]).toEqual({ name: 'app2', path: '/path/to/app2' });
-      expect(quoteConfig).toEqual({
-        gemfile: 'double',
-        gemspec: 'double',
-      });
     });
 
-    it('should parse both projects and quotes in space-separated format', () => {
-      const args = [
+    it('should throw error for invalid project format', () => {
+      const program = createProgram();
+      program.parse(['node', 'test', '--project', ':invalid']);
+
+      expect(() => parseCommandLineArgs(program)).toThrow(
+        /Invalid project format/
+      );
+    });
+  });
+
+  describe('mixed arguments parsing', () => {
+    it('should parse both projects and quotes', () => {
+      const program = createProgram();
+      program.parse([
+        'node',
+        'test',
         '--project',
         'app1:/path/to/app1',
         '--quotes',
         'double',
         '--project',
         'app2:/path/to/app2',
-      ];
-      const { projects, quoteConfig } = parseCommandLineArgs(args);
+      ]);
+      const { projects, quoteConfig } = parseCommandLineArgs(program);
 
       expect(projects).toHaveLength(2);
       expect(projects[0]).toEqual({ name: 'app1', path: '/path/to/app1' });
@@ -228,30 +234,10 @@ describe('Command Line Arguments Parsing', () => {
       });
     });
 
-    it('should handle mixed equals and space-separated formats', () => {
-      const args = [
-        '--project=app1:/path/to/app1',
-        '--quotes',
-        'double',
-        '--project',
-        'app2:/path/to/app2',
-        '--quotes=single',
-      ];
-      const { projects, quoteConfig } = parseCommandLineArgs(args);
-
-      expect(projects).toHaveLength(2);
-      expect(projects[0]).toEqual({ name: 'app1', path: '/path/to/app1' });
-      expect(projects[1]).toEqual({ name: 'app2', path: '/path/to/app2' });
-      // Last quotes setting should win
-      expect(quoteConfig).toEqual({
-        gemfile: 'single',
-        gemspec: 'single',
-      });
-    });
-
     it('should simulate .mcp.json format exactly', () => {
-      // This simulates the exact args from .mcp.json
-      const args = [
+      const program = createProgram();
+      program.parse([
+        'node',
         './packages/gems-mcp/dist/index.js',
         '--project',
         'dummy-rails:./fixtures/dummy-rails',
@@ -259,8 +245,8 @@ describe('Command Line Arguments Parsing', () => {
         'dummy-gem:./fixtures/dummy-gem',
         '--quotes',
         'double',
-      ];
-      const { projects, quoteConfig } = parseCommandLineArgs(args);
+      ]);
+      const { projects, quoteConfig } = parseCommandLineArgs(program);
 
       expect(projects).toHaveLength(2);
       expect(projects[0]).toEqual({
@@ -276,33 +262,13 @@ describe('Command Line Arguments Parsing', () => {
         gemspec: 'double',
       });
     });
-
-    it('should ignore other arguments while parsing projects and quotes', () => {
-      const args = [
-        '--verbose',
-        '--project',
-        'app:/path/to/app',
-        '--debug',
-        '--quotes',
-        'double',
-        '--other-flag',
-        'some-value',
-      ];
-      const { projects, quoteConfig } = parseCommandLineArgs(args);
-
-      expect(projects).toHaveLength(1);
-      expect(projects[0]).toEqual({ name: 'app', path: '/path/to/app' });
-      expect(quoteConfig).toEqual({
-        gemfile: 'double',
-        gemspec: 'double',
-      });
-    });
   });
 
   describe('default behavior', () => {
     it('should return default quote config when no quotes specified', () => {
-      const args = ['--project=app:/path/to/app'];
-      const { quoteConfig } = parseCommandLineArgs(args);
+      const program = createProgram();
+      program.parse(['node', 'test', '--project', 'app:/path/to/app']);
+      const { quoteConfig } = parseCommandLineArgs(program);
 
       expect(quoteConfig).toEqual({
         gemfile: 'single',
@@ -311,15 +277,17 @@ describe('Command Line Arguments Parsing', () => {
     });
 
     it('should return empty projects when no projects specified', () => {
-      const args = ['--quotes=double'];
-      const { projects } = parseCommandLineArgs(args);
+      const program = createProgram();
+      program.parse(['node', 'test', '--quotes', 'double']);
+      const { projects } = parseCommandLineArgs(program);
 
       expect(projects).toHaveLength(0);
     });
 
     it('should handle empty args array', () => {
-      const args: string[] = [];
-      const { projects, quoteConfig } = parseCommandLineArgs(args);
+      const program = createProgram();
+      program.parse(['node', 'test']);
+      const { projects, quoteConfig } = parseCommandLineArgs(program);
 
       expect(projects).toHaveLength(0);
       expect(quoteConfig).toEqual({

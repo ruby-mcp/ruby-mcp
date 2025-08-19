@@ -2,9 +2,9 @@
     "mcpServers": {
         "gems": {
             "type": "stdio",
-            "command": "node",
+            "command": "npx",
             "args": [
-                "./packages/gems-mcp/dist/index.js",
+                "@ruby-mcp/gems-mcp@latest",
                 "--project",
                 "dummy-rails:./fixtures/dummy-rails",
                 "--project",
