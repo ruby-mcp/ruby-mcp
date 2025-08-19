@@ -387,7 +387,7 @@ end
       expect(parsed.gems.length).toBeGreaterThan(0);
 
       // Check that it found some common Rails gems
-      const gemNames = parsed.gems.map((gem: any) => gem.name);
+      const gemNames = parsed.gems.map((gem: { name: string }) => gem.name);
       expect(gemNames).toContain('rails');
     });
 

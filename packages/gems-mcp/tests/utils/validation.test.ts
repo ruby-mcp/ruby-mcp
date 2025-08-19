@@ -77,7 +77,7 @@ describe('validation utilities', () => {
         parse: () => {
           throw new Error('Custom error');
         },
-      } as any;
+      } as unknown as z.ZodTypeAny;
       const input = {};
       const result = validateInput(throwingSchema, input);
 
@@ -91,7 +91,7 @@ describe('validation utilities', () => {
         parse: () => {
           throw 'String error';
         },
-      } as any;
+      } as unknown as z.ZodTypeAny;
       const input = {};
       const result = validateInput(throwingSchema, input);
 
@@ -120,11 +120,11 @@ describe('validation utilities', () => {
     });
 
     it('should return false for non-string inputs', () => {
-      expect(isValidGemName(null as any)).toBe(false);
-      expect(isValidGemName(undefined as any)).toBe(false);
-      expect(isValidGemName(123 as any)).toBe(false);
-      expect(isValidGemName({} as any)).toBe(false);
-      expect(isValidGemName([] as any)).toBe(false);
+      expect(isValidGemName(null as unknown as string)).toBe(false);
+      expect(isValidGemName(undefined as unknown as string)).toBe(false);
+      expect(isValidGemName(123 as unknown as string)).toBe(false);
+      expect(isValidGemName({} as unknown as string)).toBe(false);
+      expect(isValidGemName([] as unknown as string)).toBe(false);
     });
   });
 
@@ -150,11 +150,11 @@ describe('validation utilities', () => {
     });
 
     it('should handle non-string inputs', () => {
-      expect(sanitizeSearchQuery(null as any)).toBe('');
-      expect(sanitizeSearchQuery(undefined as any)).toBe('');
-      expect(sanitizeSearchQuery(123 as any)).toBe('');
-      expect(sanitizeSearchQuery({} as any)).toBe('');
-      expect(sanitizeSearchQuery([] as any)).toBe('');
+      expect(sanitizeSearchQuery(null as unknown as string)).toBe('');
+      expect(sanitizeSearchQuery(undefined as unknown as string)).toBe('');
+      expect(sanitizeSearchQuery(123 as unknown as string)).toBe('');
+      expect(sanitizeSearchQuery({} as unknown as string)).toBe('');
+      expect(sanitizeSearchQuery([] as unknown as string)).toBe('');
     });
   });
 

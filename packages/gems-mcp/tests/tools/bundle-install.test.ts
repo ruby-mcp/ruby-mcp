@@ -4,7 +4,7 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { BundleInstallTool } from '../../src/tools/bundle-install.js';
 import { ProjectManager } from '../../src/project-manager.js';
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 
 // Mock the spawn function
 vi.mock('child_process', () => ({
@@ -316,9 +316,10 @@ describe('BundleInstallTool', () => {
     it('should handle unexpected errors', async () => {
       // Mock a tool that throws an unexpected error
       const toolWithError = new BundleInstallTool();
-      vi.spyOn(toolWithError as any, 'runBundleCommand').mockRejectedValue(
-        new Error('Unexpected error')
-      );
+      vi.spyOn(
+        toolWithError as unknown as { runBundleCommand: () => Promise<void> },
+        'runBundleCommand'
+      ).mockRejectedValue(new Error('Unexpected error'));
 
       const result = await toolWithError.execute({});
 
@@ -370,38 +371,31 @@ describe('BundleInstallTool', () => {
     const mockEventEmitter = {
       stdout: {
         on: vi.fn(),
-        emit: vi.fn(),
+        emit: vi.fn((event: string, data: unknown) => {
+          const handlers = mockEventEmitter.stdout.on.mock.calls
+            .filter((call) => call[0] === event)
+            .map((call) => call[1]);
+          handlers.forEach((handler) => handler(data));
+        }),
       },
       stderr: {
         on: vi.fn(),
-        emit: vi.fn(),
+        emit: vi.fn((event: string, data: unknown) => {
+          const handlers = mockEventEmitter.stderr.on.mock.calls
+            .filter((call) => call[0] === event)
+            .map((call) => call[1]);
+          handlers.forEach((handler) => handler(data));
+        }),
       },
       on: vi.fn(),
-      emit: vi.fn(),
+      emit: vi.fn((event: string, ...args: unknown[]) => {
+        const handlers = mockEventEmitter.on.mock.calls
+          .filter((call) => call[0] === event)
+          .map((call) => call[1]);
+        handlers.forEach((handler) => handler(...args));
+      }),
     };
 
-    // Make stdout and stderr emit work properly
-    mockEventEmitter.stdout.emit = (event: string, data: any) => {
-      const handlers = mockEventEmitter.stdout.on.mock.calls
-        .filter((call) => call[0] === event)
-        .map((call) => call[1]);
-      handlers.forEach((handler) => handler(data));
-    };
-
-    mockEventEmitter.stderr.emit = (event: string, data: any) => {
-      const handlers = mockEventEmitter.stderr.on.mock.calls
-        .filter((call) => call[0] === event)
-        .map((call) => call[1]);
-      handlers.forEach((handler) => handler(data));
-    };
-
-    mockEventEmitter.emit = (event: string, ...args: any[]) => {
-      const handlers = mockEventEmitter.on.mock.calls
-        .filter((call) => call[0] === event)
-        .map((call) => call[1]);
-      handlers.forEach((handler) => handler(...args));
-    };
-
-    return mockEventEmitter;
+    return mockEventEmitter as unknown as ChildProcess;
   }
 });

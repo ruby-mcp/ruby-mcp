@@ -393,12 +393,12 @@ async function main(): Promise<void> {
 
 // Only run main if this file is executed directly (not imported)
 // Check if this is the main module being executed
-const isMainModule = process.argv[1] && (
-  import.meta.url === `file://${process.argv[1]}` ||
-  import.meta.url.endsWith(process.argv[1]) ||
-  process.argv[1].endsWith('index.js') ||
-  process.argv[1].endsWith('gems-mcp')
-);
+const isMainModule =
+  process.argv[1] &&
+  (import.meta.url === `file://${process.argv[1]}` ||
+    import.meta.url.endsWith(process.argv[1]) ||
+    process.argv[1].endsWith('index.js') ||
+    process.argv[1].endsWith('gems-mcp'));
 
 if (isMainModule) {
   main().catch((error) => {
