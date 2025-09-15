@@ -30,6 +30,21 @@ MCP server for interacting with RubyGems.org API, providing tools for:
 - Managing Gemfile dependencies
 - Running bundle install operations
 
+## Philosophy
+
+### Deterministic Operations for Non-Deterministic Systems
+
+While LLMs excel at understanding context and generating solutions, they are inherently non-deterministic. When managing critical development operations like Rails commands or Gemfile modifications, allowing LLMs to decide *how* to perform these operations leads to inconsistent implementations and codebase drift over time.
+
+Ruby MCP servers enforce deterministic workflows for these operations by:
+
+- **Standardizing Operations**: Each MCP tool performs its task in exactly one way, ensuring consistency across all uses
+- **Reducing Variability**: By constraining LLM agents to use only these MCP tools, we eliminate method selection variance
+- **Preventing Drift**: Universal consistency in how operations are performed prevents gradual codebase divergence
+- **Combining Strengths**: LLMs handle the "what" and "why" (understanding context and intent), while MCP servers handle the "how" (executing operations deterministically)
+
+This architecture allows development teams to leverage LLM intelligence while maintaining strict operational consistency - the best of both worlds.
+
 ## Overview
 
 Ruby MCP provides specialized MCP servers that integrate with your Ruby and Rails development workflow, offering context-aware assistance for:
