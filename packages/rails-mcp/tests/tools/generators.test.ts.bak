@@ -1,0 +1,199 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { GeneratorsTool } from '../../src/tools/generators.js';
+import { RailsClient } from '../../src/api/rails-client.js';
+import { ProjectManager } from '../../src/project-manager.js';
+
+// Mock child_process
+const mockSpawn = vi.hoisted(() => vi.fn());
+vi.mock('child_process', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    spawn: mockSpawn,
+  };
+});
+
+// Get test fixtures
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const fixturesDir = join(__dirname, '..', 'fixtures');
+
+const railsGenerateHelpOutput = readFileSync(
+  join(fixturesDir, 'rails-generate-help.txt'),
+  'utf8'
+);
+
+describe('GeneratorsTool', () => {
+  let tool: GeneratorsTool;
+  let client: RailsClient;
+  let projectManager: ProjectManager;
+
+  beforeEach(() => {
+    client = new RailsClient({ cacheEnabled: false });
+    projectManager = new ProjectManager([{ name: 'test', path: '/test/path' }]);
+    tool = new GeneratorsTool({ client, projectManager });
+
+    // Reset mock
+    mockSpawn.mockReset();
+  });
+
+  describe('input validation', () => {
+    it('should accept empty input (project is optional)', async () => {
+      // Mock Rails project check and command execution
+      mockRailsProjectCheck(true);
+      mockSuccessfulRailsCommand(railsGenerateHelpOutput);
+
+      const result = await tool.execute({});
+      expect(result.isError).toBe(false);
+    });
+
+    it('should accept valid project name', async () => {
+      mockRailsProjectCheck(true);
+      mockSuccessfulRailsCommand(railsGenerateHelpOutput);
+
+      const result = await tool.execute({ project: 'test' });
+      expect(result.isError).toBe(false);
+    });
+
+    it('should reject invalid project name', async () => {
+      const result = await tool.execute({ project: 'nonexistent' });
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain(
+        'Project not found: nonexistent'
+      );
+    });
+  });
+
+  describe('Rails project validation', () => {
+    it('should return error for non-Rails project', async () => {
+      mockRailsProjectCheck(false);
+
+      const result = await tool.execute({});
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Not a Rails project');
+    });
+
+    it('should proceed for valid Rails project', async () => {
+      mockRailsProjectCheck(true);
+      mockSuccessfulRailsCommand(railsGenerateHelpOutput);
+
+      const result = await tool.execute({});
+      expect(result.isError).toBe(false);
+    });
+  });
+
+  describe('generator listing', () => {
+    it('should parse and format generators correctly', async () => {
+      mockRailsProjectCheck(true);
+      mockSuccessfulRailsCommand(railsGenerateHelpOutput);
+
+      const result = await tool.execute({});
+
+      expect(result.isError).toBe(false);
+      const text = result.content[0].text;
+
+      // Should contain Rails generators
+      expect(text).toContain('## Rails');
+      expect(text).toContain('controller');
+      expect(text).toContain('model');
+      expect(text).toContain('migration');
+
+      // Should contain TestUnit generators
+      expect(text).toContain('## TestUnit');
+      expect(text).toContain('test_unit:channel');
+
+      // Should show project info
+      expect(text).toContain('Project info:');
+      expect(text).toContain('Rails version:');
+    });
+
+    it('should handle empty generator list', async () => {
+      mockRailsProjectCheck(true);
+      mockSuccessfulRailsCommand(
+        'Usage:\n  rails generate GENERATOR [args] [options]\n\nNo generators found.'
+      );
+
+      const result = await tool.execute({});
+
+      expect(result.isError).toBe(false);
+      expect(result.content[0].text).toContain('No generators found');
+    });
+
+    it('should handle Rails command failure', async () => {
+      mockRailsProjectCheck(true);
+      mockFailedRailsCommand('Rails command failed');
+
+      const result = await tool.execute({});
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error listing generators');
+    });
+  });
+
+  // Helper functions
+  function mockRailsProjectCheck(isRailsProject: boolean) {
+    // Mock the fs.promises methods directly in the client
+    vi.doMock('fs', async () => {
+      const actual = await vi.importActual('fs');
+      return {
+        ...actual,
+        promises: {
+          ...actual.promises,
+          access: isRailsProject 
+            ? vi.fn().mockResolvedValue(undefined)
+            : vi.fn().mockRejectedValue(new Error('ENOENT')),
+          readFile: vi.fn().mockResolvedValue('rails (7.0.0)'),
+          stat: vi.fn().mockResolvedValue({ isDirectory: () => true }),
+        },
+      };
+    });
+  }
+
+  function mockSuccessfulRailsCommand(output: string) {
+    const mockChildProcess = {
+      stdout: {
+        on: vi.fn((event, callback) => {
+          if (event === 'data') {
+            callback(Buffer.from(output));
+          }
+        }),
+      },
+      stderr: {
+        on: vi.fn(),
+      },
+      on: vi.fn((event, callback) => {
+        if (event === 'close') {
+          callback(0); // Success exit code
+        }
+      }),
+      kill: vi.fn(),
+    };
+
+    mockSpawn.mockReturnValue(mockChildProcess);
+  }
+
+  function mockFailedRailsCommand(error: string) {
+    const mockChildProcess = {
+      stdout: {
+        on: vi.fn(),
+      },
+      stderr: {
+        on: vi.fn((event, callback) => {
+          if (event === 'data') {
+            callback(Buffer.from(error));
+          }
+        }),
+      },
+      on: vi.fn((event, callback) => {
+        if (event === 'close') {
+          callback(1); // Error exit code
+        }
+      }),
+      kill: vi.fn(),
+    };
+
+    mockSpawn.mockReturnValue(mockChildProcess);
+  }
+});

@@ -13,6 +13,16 @@
                 "double"
             ],
             "env": {}
+        },
+        "rails": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "./packages/rails-mcp",
+                "--project",
+                "dummy-rails:./fixtures/dummy-rails"
+            ],
+            "env": {}
         }
     }
 }

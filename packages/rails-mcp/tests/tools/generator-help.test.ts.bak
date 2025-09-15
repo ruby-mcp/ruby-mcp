@@ -1,0 +1,169 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { GeneratorHelpTool } from '../../src/tools/generator-help.js';
+import { RailsClient } from '../../src/api/rails-client.js';
+import { ProjectManager } from '../../src/project-manager.js';
+
+// Mock child_process
+const mockSpawn = vi.hoisted(() => vi.fn());
+vi.mock('child_process', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    spawn: mockSpawn,
+  };
+});
+
+// Get test fixtures
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const fixturesDir = join(__dirname, '..', 'fixtures');
+
+const modelGeneratorHelpOutput = readFileSync(
+  join(fixturesDir, 'model-generator-help.txt'),
+  'utf8'
+);
+
+describe('GeneratorHelpTool', () => {
+  let tool: GeneratorHelpTool;
+  let client: RailsClient;
+  let projectManager: ProjectManager;
+
+  beforeEach(() => {
+    client = new RailsClient({ cacheEnabled: false });
+    projectManager = new ProjectManager([{ name: 'test', path: '/test/path' }]);
+    tool = new GeneratorHelpTool({ client, projectManager });
+
+    // Reset mock
+    mockSpawn.mockReset();
+  });
+
+  describe('input validation', () => {
+    it('should require generator_name', async () => {
+      const result = await tool.execute({});
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain(
+        'Generator name cannot be empty'
+      );
+    });
+
+    it('should accept valid generator_name', async () => {
+      await mockRailsProjectCheck(true);
+      mockSuccessfulRailsCommand(modelGeneratorHelpOutput);
+
+      const result = await tool.execute({ generator_name: 'model' });
+      expect(result.isError).toBe(false);
+    });
+
+    it('should reject invalid project name', async () => {
+      const result = await tool.execute({
+        generator_name: 'model',
+        project: 'nonexistent',
+      });
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain(
+        'Project not found: nonexistent'
+      );
+    });
+  });
+
+  describe('generator help parsing', () => {
+    it('should parse model generator help correctly', async () => {
+      await mockRailsProjectCheck(true);
+      mockSuccessfulRailsCommand(modelGeneratorHelpOutput);
+
+      const result = await tool.execute({ generator_name: 'model' });
+
+      expect(result.isError).toBe(false);
+      const text = result.content[0].text;
+
+      // Should contain title
+      expect(text).toContain('# model Generator');
+
+      // Should contain usage
+      expect(text).toContain('## Usage');
+      expect(text).toContain('rails generate model NAME');
+
+      // Should contain options
+      expect(text).toContain('## Options');
+      expect(text).toContain('--skip-namespace');
+      expect(text).toContain('--migration');
+      expect(text).toContain('--timestamps');
+
+      // Should show project info
+      expect(text).toContain('## Project Info');
+      expect(text).toContain('Rails version:');
+    });
+
+    it("should handle generator that doesn't exist", async () => {
+      await mockRailsProjectCheck(true);
+      mockFailedRailsCommand("Could not find generator 'nonexistent'");
+
+      const result = await tool.execute({ generator_name: 'nonexistent' });
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain(
+        'Error getting help for generator'
+      );
+    });
+  });
+
+  // Helper functions
+  async function mockRailsProjectCheck(isRailsProject: boolean) {
+    const mockFs = vi.mocked(await import('fs')).promises;
+
+    if (isRailsProject) {
+      mockFs.access.mockResolvedValue(undefined);
+      mockFs.readFile.mockResolvedValue('rails (7.0.0)');
+    } else {
+      mockFs.access.mockRejectedValue(new Error('ENOENT'));
+    }
+  }
+
+  function mockSuccessfulRailsCommand(output: string) {
+    const mockChildProcess = {
+      stdout: {
+        on: vi.fn((event, callback) => {
+          if (event === 'data') {
+            callback(Buffer.from(output));
+          }
+        }),
+      },
+      stderr: {
+        on: vi.fn(),
+      },
+      on: vi.fn((event, callback) => {
+        if (event === 'close') {
+          callback(0); // Success exit code
+        }
+      }),
+      kill: vi.fn(),
+    };
+
+    mockSpawn.mockReturnValue(mockChildProcess);
+  }
+
+  function mockFailedRailsCommand(error: string) {
+    const mockChildProcess = {
+      stdout: {
+        on: vi.fn(),
+      },
+      stderr: {
+        on: vi.fn((event, callback) => {
+          if (event === 'data') {
+            callback(Buffer.from(error));
+          }
+        }),
+      },
+      on: vi.fn((event, callback) => {
+        if (event === 'close') {
+          callback(1); // Error exit code
+        }
+      }),
+      kill: vi.fn(),
+    };
+
+    mockSpawn.mockReturnValue(mockChildProcess);
+  }
+});
