@@ -11,6 +11,7 @@ import type {
   GeneratorHelp,
   RailsProjectInfo,
   GenerateResult,
+  DestroyResult,
 } from '../types.js';
 
 export interface RailsClientOptions {
@@ -294,6 +295,87 @@ export class RailsClient {
   }
 
   /**
+   * Execute a Rails destroy command
+   */
+  async destroyFiles(
+    generatorName: string,
+    args: string[],
+    options: Record<string, unknown>,
+    projectPath: string
+  ): Promise<ApiResponse<DestroyResult>> {
+    // First check if this is a Rails project
+    const projectInfo = await this.checkRailsProject(projectPath);
+    if (!projectInfo.isRailsProject) {
+      return {
+        data: {
+          success: false,
+          output: '',
+          error: `Not a Rails project: ${projectPath}. Cannot run destroy outside of Rails projects.`,
+          filesRemoved: [],
+          filesModified: [],
+        },
+        success: false,
+        error: `Not a Rails project: ${projectPath}. Cannot run destroy outside of Rails projects.`,
+      };
+    }
+
+    try {
+      const command = ['destroy', generatorName, ...args];
+
+      // Add options to command
+      for (const [key, value] of Object.entries(options)) {
+        if (typeof value === 'boolean') {
+          if (value) {
+            command.push(`--${key}`);
+          } else {
+            command.push(`--no-${key}`);
+          }
+        } else if (Array.isArray(value)) {
+          command.push(`--${key}`);
+          command.push(value.join(','));
+        } else if (value !== undefined) {
+          command.push(`--${key}`);
+          command.push(String(value));
+        }
+      }
+
+      const output = await this.executeRailsCommand(command, projectPath);
+
+      if (!output.success) {
+        return {
+          data: {
+            success: false,
+            output: '',
+            error: output.error,
+            filesRemoved: [],
+            filesModified: [],
+          },
+          success: false,
+          error: output.error,
+        };
+      }
+
+      const result = this.parseDestroyOutput(output.data);
+
+      return { data: result, success: true };
+    } catch (error) {
+      return {
+        data: {
+          success: false,
+          output: '',
+          error:
+            error instanceof Error ? error.message : 'Unknown error occurred',
+          filesRemoved: [],
+          filesModified: [],
+        },
+        success: false,
+        error:
+          error instanceof Error ? error.message : 'Unknown error occurred',
+      };
+    }
+  }
+
+  /**
    * Execute a Rails command and return the output
    */
   private async executeRailsCommand(
@@ -494,6 +576,36 @@ export class RailsClient {
       success: true,
       output,
       filesCreated,
+      filesModified,
+    };
+  }
+
+  /**
+   * Parse the output of 'rails destroy' command execution
+   */
+  private parseDestroyOutput(output: string): DestroyResult {
+    const lines = output.split('\n');
+    const filesRemoved: string[] = [];
+    const filesModified: string[] = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+
+      if (trimmed.startsWith('remove ')) {
+        const filePath = trimmed.substring(7).trim();
+        filesRemoved.push(filePath);
+      } else if (trimmed.startsWith('revoke ') || trimmed.startsWith('gsub ')) {
+        const filePath = trimmed.split(' ')[1]?.trim();
+        if (filePath && !filesModified.includes(filePath)) {
+          filesModified.push(filePath);
+        }
+      }
+    }
+
+    return {
+      success: true,
+      output,
+      filesRemoved,
       filesModified,
     };
   }

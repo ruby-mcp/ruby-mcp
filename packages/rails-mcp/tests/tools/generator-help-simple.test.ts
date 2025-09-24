@@ -30,12 +30,14 @@ describe('GeneratorHelpTool - Validation', () => {
     });
 
     it('should reject invalid project name', async () => {
-      const result = await tool.execute({ 
+      const result = await tool.execute({
         generator_name: 'model',
-        project: 'nonexistent' 
+        project: 'nonexistent',
       });
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Project not found: nonexistent');
+      expect(result.content[0].text).toContain(
+        'Project not found: nonexistent'
+      );
     });
   });
 
@@ -50,7 +52,9 @@ describe('GeneratorHelpTool - Validation', () => {
       const result = await tool.execute({ generator_name: '' });
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Validation failed');
-      expect(result.content[0].text).toContain('Generator name cannot be empty');
+      expect(result.content[0].text).toContain(
+        'Generator name cannot be empty'
+      );
     });
   });
 });

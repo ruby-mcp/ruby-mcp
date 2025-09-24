@@ -15,11 +15,13 @@ import { RailsClient } from './api/rails-client.js';
 import { GeneratorsTool } from './tools/generators.js';
 import { GeneratorHelpTool } from './tools/generator-help.js';
 import { GenerateTool } from './tools/generate.js';
+import { DestroyTool } from './tools/destroy.js';
 import { ProjectManager, type ProjectConfig } from './project-manager.js';
 import {
   ListGeneratorsSchema,
   GetGeneratorHelpSchema,
   GenerateSchema,
+  DestroySchema,
 } from './schemas.js';
 
 export class RailsServer {
@@ -29,6 +31,7 @@ export class RailsServer {
   private generatorsTool: GeneratorsTool;
   private generatorHelpTool: GeneratorHelpTool;
   private generateTool: GenerateTool;
+  private destroyTool: DestroyTool;
 
   constructor(projectManager?: ProjectManager) {
     // Initialize server
@@ -57,6 +60,10 @@ export class RailsServer {
       projectManager: this.projectManager,
     });
     this.generateTool = new GenerateTool({
+      client: this.client,
+      projectManager: this.projectManager,
+    });
+    this.destroyTool = new DestroyTool({
       client: this.client,
       projectManager: this.projectManager,
     });
@@ -97,6 +104,17 @@ export class RailsServer {
         inputSchema: GenerateSchema.shape,
       },
       async (args) => this.generateTool.execute(args)
+    );
+
+    // Register destroy tool
+    this.server.registerTool(
+      'destroy',
+      {
+        description:
+          'Execute a Rails destroy command with specified arguments and options',
+        inputSchema: DestroySchema.shape,
+      },
+      async (args) => this.destroyTool.execute(args)
     );
   }
 

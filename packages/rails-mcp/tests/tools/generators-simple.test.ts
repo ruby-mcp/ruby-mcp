@@ -26,7 +26,9 @@ describe('GeneratorsTool - Validation', () => {
     it('should reject invalid project name', async () => {
       const result = await tool.execute({ project: 'nonexistent' });
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Project not found: nonexistent');
+      expect(result.content[0].text).toContain(
+        'Project not found: nonexistent'
+      );
     });
 
     it('should accept valid project name', async () => {

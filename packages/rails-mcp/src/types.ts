@@ -52,3 +52,11 @@ export interface GenerateResult {
   filesCreated: string[];
   filesModified: string[];
 }
+
+export interface DestroyResult {
+  success: boolean;
+  output: string;
+  error?: string;
+  filesRemoved: string[];
+  filesModified: string[];
+}
