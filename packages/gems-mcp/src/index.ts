@@ -21,6 +21,7 @@ import { GemfileParserTool } from './tools/gemfile-parser.js';
 import { GemPinTool } from './tools/pin.js';
 import { GemAddTool } from './tools/add.js';
 import { BundleInstallTool } from './tools/bundle-install.js';
+import { BundleToolsManager } from './tools/bundle-tools.js';
 import { ProjectManager, type ProjectConfig } from './project-manager.js';
 import {
   type QuoteConfig,
@@ -39,6 +40,10 @@ import {
   GemAddToGemfileSchema,
   GemAddToGemspecSchema,
   BundleInstallSchema,
+  BundleCheckSchema,
+  BundleShowSchema,
+  BundleAuditSchema,
+  BundleCleanSchema,
 } from './schemas.js';
 
 export class GemsServer {
@@ -53,6 +58,7 @@ export class GemsServer {
   private gemPinTool: GemPinTool;
   private gemAddTool: GemAddTool;
   private bundleInstallTool: BundleInstallTool;
+  private bundleToolsManager: BundleToolsManager;
 
   constructor(projectManager?: ProjectManager, quoteConfig?: QuoteConfig) {
     // Initialize server
@@ -89,6 +95,9 @@ export class GemsServer {
       quoteConfig: this.quoteConfig,
     });
     this.bundleInstallTool = new BundleInstallTool({
+      projectManager: this.projectManager,
+    });
+    this.bundleToolsManager = new BundleToolsManager({
       projectManager: this.projectManager,
     });
 
@@ -215,6 +224,50 @@ export class GemsServer {
         inputSchema: BundleInstallSchema.shape,
       },
       async (args) => this.bundleInstallTool.execute(args)
+    );
+
+    // Register bundle_check tool
+    this.server.registerTool(
+      'bundle_check',
+      {
+        description:
+          'Run bundle check to verify that all gems in Gemfile.lock are installed and available. Optionally specify a project name to run within that project.',
+        inputSchema: BundleCheckSchema.shape,
+      },
+      async (args) => this.bundleToolsManager.executeCheck(args)
+    );
+
+    // Register bundle_show tool
+    this.server.registerTool(
+      'bundle_show',
+      {
+        description:
+          'Show information about installed gems. Can show all gems or details for a specific gem, with options for paths and outdated gem information. Optionally specify a project name to run within that project.',
+        inputSchema: BundleShowSchema.shape,
+      },
+      async (args) => this.bundleToolsManager.executeShow(args)
+    );
+
+    // Register bundle_audit tool
+    this.server.registerTool(
+      'bundle_audit',
+      {
+        description:
+          'Run bundle audit to check for security vulnerabilities in installed gems. Requires bundler-audit gem to be installed. Optionally specify a project name to run within that project.',
+        inputSchema: BundleAuditSchema.shape,
+      },
+      async (args) => this.bundleToolsManager.executeAudit(args)
+    );
+
+    // Register bundle_clean tool
+    this.server.registerTool(
+      'bundle_clean',
+      {
+        description:
+          'Run bundle clean to remove gems not specified in Gemfile.lock. Supports dry-run and force options. Optionally specify a project name to run within that project.',
+        inputSchema: BundleCleanSchema.shape,
+      },
+      async (args) => this.bundleToolsManager.executeClean(args)
     );
   }
 

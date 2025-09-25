@@ -189,6 +189,61 @@ export const BundleInstallSchema = z.object({
   quiet: z.boolean().optional().default(false),
 });
 
+export const BundleCheckSchema = z.object({
+  project: z
+    .string()
+    .min(1, 'Project name cannot be empty')
+    .max(100, 'Project name too long')
+    .optional(),
+  gemfile: z
+    .string()
+    .min(1, 'Gemfile path cannot be empty')
+    .max(500, 'Gemfile path too long')
+    .optional(),
+});
+
+export const BundleShowSchema = z.object({
+  gem_name: z
+    .string()
+    .min(1, 'Gem name cannot be empty')
+    .max(50, 'Gem name too long')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Invalid gem name format')
+    .optional(),
+  project: z
+    .string()
+    .min(1, 'Project name cannot be empty')
+    .max(100, 'Project name too long')
+    .optional(),
+  paths: z.boolean().optional().default(false),
+  outdated: z.boolean().optional().default(false),
+});
+
+export const BundleAuditSchema = z.object({
+  project: z
+    .string()
+    .min(1, 'Project name cannot be empty')
+    .max(100, 'Project name too long')
+    .optional(),
+  update: z.boolean().optional().default(false),
+  verbose: z.boolean().optional().default(false),
+  format: z.enum(['text', 'json']).optional().default('text'),
+  gemfile_lock: z
+    .string()
+    .min(1, 'Gemfile.lock path cannot be empty')
+    .max(500, 'Gemfile.lock path too long')
+    .optional(),
+});
+
+export const BundleCleanSchema = z.object({
+  project: z
+    .string()
+    .min(1, 'Project name cannot be empty')
+    .max(100, 'Project name too long')
+    .optional(),
+  dry_run: z.boolean().optional().default(false),
+  force: z.boolean().optional().default(false),
+});
+
 // Response validation schemas for API responses
 export const GemDependencySchema = z.object({
   name: z.string(),
@@ -641,6 +696,118 @@ export const bundleInstallInputSchema = {
   additionalProperties: false,
 };
 
+export const bundleCheckInputSchema = {
+  type: 'object' as const,
+  properties: {
+    project: {
+      type: 'string' as const,
+      description: 'Optional project name to run bundle check within',
+      minLength: 1,
+      maxLength: 100,
+    },
+    gemfile: {
+      type: 'string' as const,
+      description: 'Path to specific Gemfile to use (relative to project)',
+      minLength: 1,
+      maxLength: 500,
+    },
+  },
+  required: [] as const,
+  additionalProperties: false,
+};
+
+export const bundleShowInputSchema = {
+  type: 'object' as const,
+  properties: {
+    gem_name: {
+      type: 'string' as const,
+      description: 'Name of gem to show (omit to show all gems)',
+      minLength: 1,
+      maxLength: 50,
+      pattern: '^[a-zA-Z0-9_-]+$',
+    },
+    project: {
+      type: 'string' as const,
+      description: 'Optional project name to run bundle show within',
+      minLength: 1,
+      maxLength: 100,
+    },
+    paths: {
+      type: 'boolean' as const,
+      description: 'Show gem installation paths',
+      default: false,
+    },
+    outdated: {
+      type: 'boolean' as const,
+      description: 'Show outdated gems only',
+      default: false,
+    },
+  },
+  required: [] as const,
+  additionalProperties: false,
+};
+
+export const bundleAuditInputSchema = {
+  type: 'object' as const,
+  properties: {
+    project: {
+      type: 'string' as const,
+      description: 'Optional project name to run bundle audit within',
+      minLength: 1,
+      maxLength: 100,
+    },
+    update: {
+      type: 'boolean' as const,
+      description: 'Update vulnerability database before auditing',
+      default: false,
+    },
+    verbose: {
+      type: 'boolean' as const,
+      description: 'Show verbose output',
+      default: false,
+    },
+    format: {
+      type: 'string' as const,
+      description: 'Output format for audit results',
+      enum: ['text', 'json'],
+      default: 'text',
+    },
+    gemfile_lock: {
+      type: 'string' as const,
+      description:
+        'Path to specific Gemfile.lock to audit (relative to project)',
+      minLength: 1,
+      maxLength: 500,
+    },
+  },
+  required: [] as const,
+  additionalProperties: false,
+};
+
+export const bundleCleanInputSchema = {
+  type: 'object' as const,
+  properties: {
+    project: {
+      type: 'string' as const,
+      description: 'Optional project name to run bundle clean within',
+      minLength: 1,
+      maxLength: 100,
+    },
+    dry_run: {
+      type: 'boolean' as const,
+      description: 'Show what would be cleaned without actually cleaning',
+      default: false,
+    },
+    force: {
+      type: 'boolean' as const,
+      description: 'Force clean even if bundle is not frozen',
+      default: false,
+    },
+  },
+  required: [] as const,
+  additionalProperties: false,
+};
+
 // Type exports for use in other files
 export type SearchGemsInput = z.infer<typeof SearchGemsSchema>;
 export type GemDetailsInput = z.infer<typeof GemDetailsSchema>;
@@ -653,3 +820,7 @@ export type GemUnpinInput = z.infer<typeof GemUnpinSchema>;
 export type GemAddToGemfileInput = z.infer<typeof GemAddToGemfileSchema>;
 export type GemAddToGemspecInput = z.infer<typeof GemAddToGemspecSchema>;
 export type BundleInstallInput = z.infer<typeof BundleInstallSchema>;
+export type BundleCheckInput = z.infer<typeof BundleCheckSchema>;
+export type BundleShowInput = z.infer<typeof BundleShowSchema>;
+export type BundleAuditInput = z.infer<typeof BundleAuditSchema>;
+export type BundleCleanInput = z.infer<typeof BundleCleanSchema>;
