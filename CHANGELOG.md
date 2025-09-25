@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Rails MCP Package (v0.1.0)
+## [2024-12-25]
+
+### Rails MCP Package (v0.2.0)
 - Initial release with Rails CLI integration
 - Rails generator listing, help, and execution tools
 - Rails destroy tool for reverting generated files
@@ -16,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rails version and project type detection
 - Comprehensive test coverage
 
-### Gems MCP Package
+### Gems MCP Package (v0.2.0)
 - Added bundle check, show, audit, and clean tools
 - Implemented BundleToolsManager for bundle operations
 - Enhanced schemas for bundle tool validation

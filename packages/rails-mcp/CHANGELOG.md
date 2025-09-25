@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-12-25
+
 ### Added
 - Initial release of Rails MCP server
 - Rails generator listing tool (`list_generators`)
@@ -50,3 +52,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vitest for testing
 - ESLint and Prettier for code quality
 - TSUP for building
+
+[Unreleased]: https://github.com/anthropics/ruby-mcp/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/anthropics/ruby-mcp/releases/tag/v0.2.0

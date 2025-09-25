@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2024-12-25
+
 ### Added
 - Bundle check tool for verifying gem installation status
 - Bundle show tool for displaying installed gem information
@@ -68,5 +70,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TSUP for building
 - 90%+ test coverage requirement
 
-[Unreleased]: https://github.com/anthropics/ruby-mcp/compare/0.1.2...HEAD
+[Unreleased]: https://github.com/anthropics/ruby-mcp/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/anthropics/ruby-mcp/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/anthropics/ruby-mcp/releases/tag/0.1.2
