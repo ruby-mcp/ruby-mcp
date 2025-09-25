@@ -20,7 +20,9 @@ describe('GeneratorsTool - Validation', () => {
       // Since we can't mock the Rails project check easily,
       // we expect an error about not being a Rails project
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Not a Rails project');
+      expect(result.content[0].text).toContain(
+        'does not contain a Rails application'
+      );
     });
 
     it('should reject invalid project name', async () => {
@@ -35,7 +37,9 @@ describe('GeneratorsTool - Validation', () => {
       const result = await tool.execute({ project: 'test' });
       expect(result.isError).toBe(true);
       // Will fail on Rails project check, but project name validation passes
-      expect(result.content[0].text).toContain('Not a Rails project');
+      expect(result.content[0].text).toContain(
+        'does not contain a Rails application'
+      );
     });
   });
 

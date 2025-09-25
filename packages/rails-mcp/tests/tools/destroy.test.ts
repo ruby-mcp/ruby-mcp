@@ -40,7 +40,9 @@ describe('DestroyTool - Validation', () => {
       const result = await tool.execute({ generator_name: 'model' });
       expect(result.isError).toBe(true);
       // Should fail on Rails project check, not validation
-      expect(result.content[0].text).toContain('Not a Rails project');
+      expect(result.content[0].text).toContain(
+        'does not contain a Rails application'
+      );
     });
 
     it('should reject invalid project name', async () => {
@@ -61,7 +63,9 @@ describe('DestroyTool - Validation', () => {
       });
       expect(result.isError).toBe(true);
       // Will fail on Rails project check, but project name validation passes
-      expect(result.content[0].text).toContain('Not a Rails project');
+      expect(result.content[0].text).toContain(
+        'does not contain a Rails application'
+      );
     });
   });
 
@@ -142,7 +146,9 @@ describe('DestroyTool - Validation', () => {
       });
       expect(result.isError).toBe(true);
       // Should fail on Rails project check since we're not in a Rails project
-      expect(result.content[0].text).toContain('Not a Rails project');
+      expect(result.content[0].text).toContain(
+        'does not contain a Rails application'
+      );
     });
 
     it('should resolve project path through project manager', async () => {

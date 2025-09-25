@@ -4,12 +4,20 @@
 
 import { validateInput } from '../utils/validation.js';
 import {
+  createStructuredResult,
+  createStructuredError,
+  createExecutionContext,
+  generateHumanReadableSummary,
+  formatGeneratorHelp,
+} from '../utils/structured-output.js';
+import {
   GetGeneratorHelpSchema,
   type GetGeneratorHelpInput,
 } from '../schemas.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { ProjectManager } from '../project-manager.js';
 import type { RailsClient } from '../api/rails-client.js';
+import type { GeneratorHelpOutput } from '../types.js';
 
 export interface GeneratorHelpToolOptions {
   client: RailsClient;
@@ -29,15 +37,11 @@ export class GeneratorHelpTool {
     // Validate input
     const validation = validateInput(GetGeneratorHelpSchema, args);
     if (!validation.success) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Error: ${validation.error}`,
-          },
-        ],
-        isError: true,
-      };
+      return createStructuredError(
+        'get_generator_help',
+        'validation_error',
+        validation.error
+      );
     }
 
     const { generator_name, project } =
@@ -50,15 +54,12 @@ export class GeneratorHelpTool {
         ? this.projectManager.getProjectPath(project)
         : process.cwd();
     } catch (error) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          },
-        ],
-        isError: true,
-      };
+      return createStructuredError(
+        'get_generator_help',
+        'project_resolution_error',
+        error instanceof Error ? error.message : 'Unknown error',
+        { project }
+      );
     }
 
     try {
@@ -66,15 +67,12 @@ export class GeneratorHelpTool {
       const projectInfo = await this.client.checkRailsProject(workingDirectory);
 
       if (!projectInfo.isRailsProject) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Error: Not a Rails project. Directory ${workingDirectory} does not contain a Rails application.`,
-            },
-          ],
-          isError: true,
-        };
+        return createStructuredError(
+          'get_generator_help',
+          'not_rails_project',
+          `Directory ${workingDirectory} does not contain a Rails application`,
+          createExecutionContext(projectInfo, project)
+        );
       }
 
       // Get generator help
@@ -84,78 +82,52 @@ export class GeneratorHelpTool {
       );
 
       if (!response.success) {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Error getting help for generator '${generator_name}': ${response.error}`,
-            },
-          ],
-          isError: true,
-        };
+        return createStructuredError(
+          'get_generator_help',
+          'generator_help_error',
+          `Failed to get help for generator '${generator_name}': ${response.error}`,
+          createExecutionContext(projectInfo, project)
+        );
       }
 
       const help = response.data;
 
-      // Format help output
-      let result = `# ${help.name} Generator\n\n`;
-
-      if (help.description) {
-        result += `${help.description}\n\n`;
-      }
-
-      if (help.usage) {
-        result += `## Usage\n\`\`\`\n${help.usage}\n\`\`\`\n\n`;
-      }
-
-      if (help.arguments && help.arguments.length > 0) {
-        result += `## Arguments\n`;
-        for (const arg of help.arguments) {
-          result += `- **${arg.name}** (${arg.type}${arg.required ? ', required' : ', optional'}): ${arg.description}\n`;
-        }
-        result += '\n';
-      }
-
-      if (help.options && help.options.length > 0) {
-        result += `## Options\n`;
-        for (const option of help.options) {
-          const aliases =
-            option.aliases && option.aliases.length > 0
-              ? ` (${option.aliases.join(', ')})`
-              : '';
-          const defaultValue =
-            option.default !== undefined ? ` [default: ${option.default}]` : '';
-          result += `- **--${option.name}**${aliases} (${option.type}${option.required ? ', required' : ''}): ${option.description}${defaultValue}\n`;
-        }
-        result += '\n';
-      }
-
-      result += `## Project Info\n`;
-      result += `- Rails version: ${projectInfo.railsVersion || 'Unknown'}\n`;
-      result += `- Project type: ${projectInfo.projectType}\n`;
-      result += `- Root path: ${projectInfo.rootPath}\n\n`;
-
-      result += `To execute this generator, use the \`generate\` tool with the generator name and appropriate arguments and options.`;
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: result,
-          },
-        ],
-        isError: false,
+      // Create structured output
+      const output: GeneratorHelpOutput = {
+        success: true,
+        action: 'get_generator_help',
+        summary: `Successfully retrieved help for '${generator_name}' generator`,
+        context: createExecutionContext(projectInfo, project),
+        data: {
+          generator: help,
+          availableOptions: help.options.map((o) => o.name),
+          requiredArguments: help.arguments
+            .filter((a) => a.required)
+            .map((a) => a.name),
+        },
+        metadata: {
+          generatorName: generator_name,
+          hasOptions: help.options.length > 0,
+          hasArguments: help.arguments.length > 0,
+          optionCount: help.options.length,
+          argumentCount: help.arguments.length,
+        },
       };
+
+      // Generate human-readable text
+      let humanText = generateHumanReadableSummary(output);
+      humanText += '\n' + formatGeneratorHelp(help);
+      humanText +=
+        '\n💡 **Tip:** Use the `generate` tool to execute this generator with the specified arguments and options.';
+
+      return createStructuredResult(output, humanText);
     } catch (error) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`,
-          },
-        ],
-        isError: true,
-      };
+      return createStructuredError(
+        'get_generator_help',
+        'unexpected_error',
+        error instanceof Error ? error.message : 'Unknown error occurred',
+        { workingDirectory, project }
+      );
     }
   }
 }

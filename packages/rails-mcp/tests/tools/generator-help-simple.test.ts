@@ -26,7 +26,9 @@ describe('GeneratorHelpTool - Validation', () => {
       const result = await tool.execute({ generator_name: 'model' });
       expect(result.isError).toBe(true);
       // Will fail on Rails project check, but validation passes
-      expect(result.content[0].text).toContain('Not a Rails project');
+      expect(result.content[0].text).toContain(
+        'does not contain a Rails application'
+      );
     });
 
     it('should reject invalid project name', async () => {
