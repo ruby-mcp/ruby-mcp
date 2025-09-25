@@ -1,24 +1,72 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to the Gems MCP package will be documented in this file.
 
-## [0.1.2] - 2025-01-19
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Fixed
-- Fixed CLI execution when installed globally and run via npx by improving main module detection logic
-- Added support for detecting execution when binary name is 'gems-mcp'
-
-## [0.1.1] - 2025-01-19
-
-### Fixed
-- Fixed npx execution by correcting the bin field in package.json to point directly to the executable file instead of using an object format
-
-## [0.1.0] - 2025-01-18
+## [Unreleased]
 
 ### Added
-- Initial release with RubyGems.org API integration
-- Search gems functionality
-- Get gem details and versions
-- Gemfile parsing and manipulation
-- Bundle install command support
-- Project management for multiple Ruby/Rails applications
+- Bundle check tool for verifying gem installation status
+- Bundle show tool for displaying installed gem information
+- Bundle audit tool for security vulnerability scanning
+- Bundle clean tool for removing unused gems
+- BundleToolsManager class for handling bundle operations
+- Schemas and validation for all new bundle tools
+- Bundle install tool for running `bundle install` with various options
+- Support for deployment mode, frozen mode, and clean option
+- Commander.js integration for improved CLI argument parsing
+- Support for multiple project configurations via command line
+
+### Changed
+- Enhanced bundle tool registration in main server
+- Expanded schema definitions for bundle operations
+- Improved CLI interface with better help and version information
+- Enhanced project manager initialization with CLI arguments
+
+### Fixed
+- Linting and TypeScript warnings throughout the codebase
+
+## [0.1.2] - 2025-08-19
+
+### Added
+- Initial release of Gems MCP server
+- Search gems on RubyGems.org by name or keywords
+- Get detailed gem information including dependencies and metadata
+- Retrieve all versions of a gem with prerelease filtering
+- Get latest version of a gem (stable or prerelease)
+- Find reverse dependencies (gems depending on a specific gem)
+- Parse Gemfile and .gemspec files to JSON
+- Pin gems to specific versions with various constraint types (~>, >=, etc.)
+- Unpin gems by removing version constraints
+- Add gems to Gemfile with groups and options support
+- Add dependencies to .gemspec files (runtime or development)
+- RubyGems API client with rate limiting (100 requests/minute)
+- Response caching with 5-minute TTL
+- Project manager for handling multiple Ruby projects
+- Comprehensive input validation with Zod schemas
+- Full TypeScript type definitions
+
+### Features
+- Support for single quotes, double quotes, or no quotes in Gemfiles
+- Intelligent quote style detection from existing files
+- Group management for Gemfile dependencies
+- Source specification for gems
+- Require options for gems (false or specific paths)
+- Development and runtime dependency management for gemspecs
+- Parallel API request handling with concurrency limits
+- Automatic retry logic for failed API requests
+- Comprehensive error handling and validation
+
+### Technical Details
+- Built with MCP SDK for Node.js
+- TypeScript with strict type checking
+- Zod for schema validation
+- Vitest for testing with MSW for API mocking
+- ESLint and Prettier for code quality
+- TSUP for building
+- 90%+ test coverage requirement
+
+[Unreleased]: https://github.com/anthropics/ruby-mcp/compare/0.1.2...HEAD
+[0.1.2]: https://github.com/anthropics/ruby-mcp/releases/tag/0.1.2
