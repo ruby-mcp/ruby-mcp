@@ -1,28 +1,34 @@
 {
-    "mcpServers": {
-        "gems": {
-            "type": "stdio",
-            "command": "npx",
-            "args": [
-                "@ruby-mcp/gems-mcp@latest",
-                "--project",
-                "dummy-rails:./fixtures/dummy-rails",
-                "--project",
-                "dummy-gem:./fixtures/dummy-gem",
-                "--quotes",
-                "double"
-            ],
-            "env": {}
-        },
-        "rails": {
-            "type": "stdio",
-            "command": "npx",
-            "args": [
-                "./packages/rails-mcp",
-                "--project",
-                "dummy-rails:./fixtures/dummy-rails"
-            ],
-            "env": {}
-        }
+  "mcpServers": {
+    "gems": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@ruby-mcp/gems-mcp@latest",
+        "--project",
+        "dummy-rails:./fixtures/dummy-rails",
+        "--project",
+        "dummy-gem:./fixtures/dummy-gem",
+        "--quotes",
+        "double"
+      ],
+      "env": {}
+    },
+    "rails": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "./packages/rails-mcp",
+        "--project",
+        "dummy-rails:./fixtures/dummy-rails"
+      ],
+      "env": {}
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {}
     }
+  }
 }

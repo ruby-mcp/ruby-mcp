@@ -1,0 +1,4 @@
+# Ruby MCP project tool versions for mise
+node 20.18.1    # LTS version compatible with engines requirement (>= 18.0.0)
+ruby 3.4.7      # Latest stable Ruby compatible with requirement (>= 3.1.0)
+pnpm 9.14.4     # Latest stable pnpm version
