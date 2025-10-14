@@ -17,6 +17,7 @@ import { RubyGemsClient } from './api/client.js';
 import { SearchTool } from './tools/search.js';
 import { DetailsTool } from './tools/details.js';
 import { VersionsTool } from './tools/versions.js';
+import { ChangelogTool } from './tools/changelog.js';
 import { GemfileParserTool } from './tools/gemfile-parser.js';
 import { GemPinTool } from './tools/pin.js';
 import { GemAddTool } from './tools/add.js';
@@ -34,6 +35,7 @@ import {
   GemVersionsSchema,
   LatestVersionSchema,
   GemDependenciesSchema,
+  GemChangelogSchema,
   GemfileParserSchema,
   GemPinSchema,
   GemUnpinSchema,
@@ -54,6 +56,7 @@ export class GemsServer {
   private searchTool: SearchTool;
   private detailsTool: DetailsTool;
   private versionsTool: VersionsTool;
+  private changelogTool: ChangelogTool;
   private gemfileParserTool: GemfileParserTool;
   private gemPinTool: GemPinTool;
   private gemAddTool: GemAddTool;
@@ -83,6 +86,7 @@ export class GemsServer {
     this.searchTool = new SearchTool({ client: this.client });
     this.detailsTool = new DetailsTool({ client: this.client });
     this.versionsTool = new VersionsTool({ client: this.client });
+    this.changelogTool = new ChangelogTool({ client: this.client });
     this.gemfileParserTool = new GemfileParserTool({
       projectManager: this.projectManager,
     });
@@ -158,6 +162,17 @@ export class GemsServer {
         inputSchema: GemDependenciesSchema.shape,
       },
       async (args) => this.versionsTool.executeGetDependencies(args)
+    );
+
+    // Register get_gem_changelog tool
+    this.server.registerTool(
+      'get_gem_changelog',
+      {
+        description:
+          'Get changelog for a specific gem in markdown format, optionally for a specific version',
+        inputSchema: GemChangelogSchema.shape,
+      },
+      async (args) => this.changelogTool.execute(args)
     );
 
     // Register parse_gemfile tool
