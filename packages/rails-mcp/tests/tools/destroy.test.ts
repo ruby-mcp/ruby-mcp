@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DestroyTool } from '../../src/tools/destroy.js';
 import { RailsClient } from '../../src/api/rails-client.js';
 import { ProjectManager } from '../../src/project-manager.js';
@@ -159,6 +159,208 @@ describe('DestroyTool - Validation', () => {
       expect(result.isError).toBe(true);
       // The error message should reference the resolved path
       expect(result.content[0].text).toContain('/test/path');
+    });
+  });
+
+  describe('execution', () => {
+    it('should successfully destroy files', async () => {
+      // Mock Rails project check
+      client.checkRailsProject = vi.fn().mockResolvedValue({
+        isRailsProject: true,
+        railsVersion: '7.0.0',
+        projectType: 'application',
+        rootPath: '/test/path',
+      });
+
+      // Mock successful destroy
+      client.destroyFiles = vi.fn().mockResolvedValue({
+        success: true,
+        data: {
+          success: true,
+          filesRemoved: ['app/models/user.rb', 'test/models/user_test.rb'],
+          filesModified: ['db/schema.rb'],
+          output: 'Successfully destroyed model User',
+          error: undefined,
+        },
+      });
+
+      const result = await tool.execute({
+        generator_name: 'model',
+        arguments: ['User'],
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(false);
+      expect(result.content[0].text).toContain('Successfully executed destroy');
+      expect(result.content[0].text).toContain('app/models/user.rb');
+      expect(result.content[0].text).toContain('Files Removed');
+      expect(result.content[0].text).toContain('Files Modified');
+    });
+
+    it('should handle destroy command execution error', async () => {
+      client.checkRailsProject = vi.fn().mockResolvedValue({
+        isRailsProject: true,
+        railsVersion: '7.0.0',
+        projectType: 'application',
+        rootPath: '/test/path',
+      });
+
+      client.destroyFiles = vi.fn().mockResolvedValue({
+        success: false,
+        error: 'Command not found',
+        data: null,
+      });
+
+      const result = await tool.execute({
+        generator_name: 'model',
+        arguments: ['User'],
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain(
+        'Failed to execute destroy command'
+      );
+      expect(result.content[0].text).toContain('Command not found');
+    });
+
+    it('should handle destroy command failure', async () => {
+      client.checkRailsProject = vi.fn().mockResolvedValue({
+        isRailsProject: true,
+        railsVersion: '7.0.0',
+        projectType: 'application',
+        rootPath: '/test/path',
+      });
+
+      client.destroyFiles = vi.fn().mockResolvedValue({
+        success: true,
+        data: {
+          success: false,
+          filesRemoved: [],
+          filesModified: [],
+          output: 'Error output',
+          error: 'Could not find generator',
+        },
+      });
+
+      const result = await tool.execute({
+        generator_name: 'invalid',
+        arguments: ['Foo'],
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Destroy command failed');
+      expect(result.content[0].text).toContain('Could not find generator');
+      expect(result.content[0].text).toContain('Error output');
+    });
+
+    it('should handle unexpected errors', async () => {
+      client.checkRailsProject = vi.fn().mockRejectedValue(
+        new Error('Unexpected error')
+      );
+
+      const result = await tool.execute({
+        generator_name: 'model',
+        arguments: ['User'],
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Unexpected error');
+    });
+
+    it('should include command output when present', async () => {
+      client.checkRailsProject = vi.fn().mockResolvedValue({
+        isRailsProject: true,
+        railsVersion: '7.0.0',
+        projectType: 'application',
+        rootPath: '/test/path',
+      });
+
+      client.destroyFiles = vi.fn().mockResolvedValue({
+        success: true,
+        data: {
+          success: true,
+          filesRemoved: ['app/models/user.rb'],
+          filesModified: [],
+          output: 'Detailed command output here',
+          error: undefined,
+        },
+      });
+
+      const result = await tool.execute({
+        generator_name: 'model',
+        arguments: ['User'],
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(false);
+      expect(result.content[0].text).toContain('Command Output');
+      expect(result.content[0].text).toContain('Detailed command output here');
+    });
+
+    it('should format options and arguments in summary', async () => {
+      client.checkRailsProject = vi.fn().mockResolvedValue({
+        isRailsProject: true,
+        railsVersion: '7.0.0',
+        projectType: 'application',
+        rootPath: '/test/path',
+      });
+
+      client.destroyFiles = vi.fn().mockResolvedValue({
+        success: true,
+        data: {
+          success: true,
+          filesRemoved: ['app/controllers/posts_controller.rb'],
+          filesModified: ['config/routes.rb'],
+          output: '',
+          error: undefined,
+        },
+      });
+
+      const result = await tool.execute({
+        generator_name: 'controller',
+        arguments: ['Posts', 'index', 'show'],
+        options: { force: true, skip_routes: false },
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(false);
+      expect(result.content[0].text).toContain('Destruction Summary');
+      expect(result.content[0].text).toContain('Arguments:');
+      expect(result.content[0].text).toContain('`Posts`');
+      expect(result.content[0].text).toContain('Options:');
+      expect(result.content[0].text).toContain('--force');
+    });
+
+    it('should handle empty arguments and options', async () => {
+      client.checkRailsProject = vi.fn().mockResolvedValue({
+        isRailsProject: true,
+        railsVersion: '7.0.0',
+        projectType: 'application',
+        rootPath: '/test/path',
+      });
+
+      client.destroyFiles = vi.fn().mockResolvedValue({
+        success: true,
+        data: {
+          success: true,
+          filesRemoved: ['test.rb'],
+          filesModified: [],
+          output: '',
+          error: undefined,
+        },
+      });
+
+      const result = await tool.execute({
+        generator_name: 'helper',
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(false);
+      expect(result.content[0].text).toContain('Arguments: None');
+      expect(result.content[0].text).toContain('Options: None');
     });
   });
 });

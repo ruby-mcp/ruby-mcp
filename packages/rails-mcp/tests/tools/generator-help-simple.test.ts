@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GeneratorHelpTool } from '../../src/tools/generator-help.js';
 import { RailsClient } from '../../src/api/rails-client.js';
 import { ProjectManager } from '../../src/project-manager.js';
@@ -57,6 +57,120 @@ describe('GeneratorHelpTool - Validation', () => {
       expect(result.content[0].text).toContain(
         'Generator name cannot be empty'
       );
+    });
+  });
+
+  describe('execution', () => {
+    it('should successfully get generator help', async () => {
+      client.checkRailsProject = vi.fn().mockResolvedValue({
+        isRailsProject: true,
+        railsVersion: '7.0.0',
+        projectType: 'application',
+        rootPath: '/test/path',
+      });
+
+      client.getGeneratorHelp = vi.fn().mockResolvedValue({
+        success: true,
+        data: {
+          name: 'model',
+          description: 'Generate a new model',
+          usage: 'rails generate model NAME [field:type]',
+          arguments: [
+            { name: 'NAME', description: 'Model name', required: true },
+            { name: 'field:type', description: 'Field definitions', required: false },
+          ],
+          options: [
+            {
+              name: 'skip-migration',
+              description: 'Skip migration file',
+              type: 'boolean',
+              aliases: ['-s'],
+            },
+            {
+              name: 'force',
+              description: 'Overwrite existing files',
+              type: 'boolean',
+            },
+          ],
+        },
+      });
+
+      const result = await tool.execute({
+        generator_name: 'model',
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(false);
+      expect(result.content[0].text).toContain('Generator: model');
+      expect(result.content[0].text).toContain('Generate a new model');
+      expect(result.content[0].text).toContain('Usage:');
+      expect(result.content[0].text).toContain('Arguments:');
+      expect(result.content[0].text).toContain('`NAME` (required)');
+      expect(result.content[0].text).toContain('Options:');
+      expect(result.content[0].text).toContain('`--skip-migration`');
+    });
+
+    it('should handle get generator help execution error', async () => {
+      client.checkRailsProject = vi.fn().mockResolvedValue({
+        isRailsProject: true,
+        railsVersion: '7.0.0',
+        projectType: 'application',
+        rootPath: '/test/path',
+      });
+
+      client.getGeneratorHelp = vi.fn().mockResolvedValue({
+        success: false,
+        error: 'Generator not found',
+        data: null,
+      });
+
+      const result = await tool.execute({
+        generator_name: 'nonexistent',
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Failed to get help for generator');
+      expect(result.content[0].text).toContain('Generator not found');
+    });
+
+    it('should handle unexpected errors', async () => {
+      client.checkRailsProject = vi.fn().mockRejectedValue(
+        new Error('Unexpected error')
+      );
+
+      const result = await tool.execute({ generator_name: 'model' });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Unexpected error');
+    });
+
+    it('should handle generator help with no options', async () => {
+      client.checkRailsProject = vi.fn().mockResolvedValue({
+        isRailsProject: true,
+        railsVersion: '7.0.0',
+        projectType: 'application',
+        rootPath: '/test/path',
+      });
+
+      client.getGeneratorHelp = vi.fn().mockResolvedValue({
+        success: true,
+        data: {
+          name: 'simple',
+          description: 'Simple generator',
+          usage: 'rails generate simple',
+          arguments: [],
+          options: [],
+        },
+      });
+
+      const result = await tool.execute({
+        generator_name: 'simple',
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(false);
+      expect(result.content[0].text).toContain('Generator: simple');
     });
   });
 });

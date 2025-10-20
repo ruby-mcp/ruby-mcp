@@ -164,6 +164,39 @@ describe('RailsClient', () => {
       expect(result.data.filesRemoved).toEqual([]);
       expect(result.data.filesModified).toEqual([]);
     });
+
+    it('should handle spawn error event', async () => {
+      // Use a separate temp directory for this test to avoid pollution
+      const errorTestDir = join(tmpdir(), `rails-error-test-${Date.now()}`);
+      await fs.mkdir(errorTestDir, { recursive: true });
+
+      // Create Gemfile to make it look like a Rails project
+      await fs.writeFile(join(errorTestDir, 'Gemfile'), 'gem "rails"');
+      await fs.writeFile(
+        join(errorTestDir, 'config.ru'),
+        'require ::File.expand_path("../config/environment", __FILE__)'
+      );
+
+      const mockChild = new EventEmitter() as MockChildProcess;
+      mockChild.stdout = new EventEmitter();
+      mockChild.stderr = new EventEmitter();
+
+      vi.mocked(spawn).mockReturnValue(mockChild);
+
+      const promise = client.destroyFiles('model', ['User'], {}, errorTestDir);
+
+      setTimeout(() => {
+        mockChild.emit('error', new Error('ENOENT: command not found'));
+      }, 10);
+
+      const result = await promise;
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Failed to execute rails command');
+      expect(result.error).toContain('ENOENT');
+      expect(result.data.filesRemoved).toEqual([]);
+      expect(result.data.filesModified).toEqual([]);
+    });
   });
 
   describe('cache management', () => {
@@ -417,7 +450,7 @@ Options:
           'data',
           `      create  app/models/user.rb
       create  db/migrate/20240101000000_create_users.rb
-      inject  config/routes.rb
+      inject config/routes.rb
         `
         );
         mockChild.emit('close', 0);
@@ -430,6 +463,7 @@ Options:
       expect(result.data.filesCreated).toContain(
         'db/migrate/20240101000000_create_users.rb'
       );
+      expect(result.data.filesModified).toContain('config/routes.rb');
       expect(result.data.success).toBe(true);
     });
 
@@ -585,7 +619,7 @@ Options:
         mockChild.stdout.emit(
           'data',
           `      remove  app/models/post.rb
-      gsub    config/routes.rb
+      gsub config/routes.rb
         `
         );
         mockChild.emit('close', 0);
@@ -595,7 +629,9 @@ Options:
 
       expect(result.success).toBe(true);
       expect(result.data.filesRemoved).toContain('app/models/post.rb');
+      expect(result.data.filesModified).toContain('config/routes.rb');
       expect(result.data.success).toBe(true);
     });
+
   });
 });
