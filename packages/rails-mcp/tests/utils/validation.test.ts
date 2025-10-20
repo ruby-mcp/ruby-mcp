@@ -136,14 +136,14 @@ describe('validation utils', () => {
     });
 
     it('should reject null or undefined', () => {
-      expect(isValidGeneratorName(null as any)).toBe(false);
-      expect(isValidGeneratorName(undefined as any)).toBe(false);
+      expect(isValidGeneratorName(null as unknown as string)).toBe(false);
+      expect(isValidGeneratorName(undefined as unknown as string)).toBe(false);
     });
 
     it('should reject non-string values', () => {
-      expect(isValidGeneratorName(123 as any)).toBe(false);
-      expect(isValidGeneratorName({} as any)).toBe(false);
-      expect(isValidGeneratorName([] as any)).toBe(false);
+      expect(isValidGeneratorName(123 as unknown as string)).toBe(false);
+      expect(isValidGeneratorName({} as unknown as string)).toBe(false);
+      expect(isValidGeneratorName([] as unknown as string)).toBe(false);
     });
 
     it('should reject names with invalid characters', () => {
@@ -189,14 +189,14 @@ describe('validation utils', () => {
     });
 
     it('should return empty string for null or undefined', () => {
-      expect(sanitizeGeneratorName(null as any)).toBe('');
-      expect(sanitizeGeneratorName(undefined as any)).toBe('');
+      expect(sanitizeGeneratorName(null as unknown as string)).toBe('');
+      expect(sanitizeGeneratorName(undefined as unknown as string)).toBe('');
     });
 
     it('should return empty string for non-string values', () => {
-      expect(sanitizeGeneratorName(123 as any)).toBe('');
-      expect(sanitizeGeneratorName({} as any)).toBe('');
-      expect(sanitizeGeneratorName([] as any)).toBe('');
+      expect(sanitizeGeneratorName(123 as unknown as string)).toBe('');
+      expect(sanitizeGeneratorName({} as unknown as string)).toBe('');
+      expect(sanitizeGeneratorName([] as unknown as string)).toBe('');
     });
 
     it('should handle names with both leading/trailing whitespace and length > 100', () => {

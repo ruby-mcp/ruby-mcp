@@ -438,13 +438,18 @@ end
     });
 
     it('should handle non-Error exceptions', async () => {
-      const badProjectManager = {
+      const badProjectManager: Pick<
+        ProjectManager,
+        'getProjectPath' | 'resolveFilePath'
+      > = {
         getProjectPath: vi.fn().mockReturnValue(tempDir),
         resolveFilePath: vi.fn().mockImplementation(() => {
           throw 'string error in add tool';
         }),
       };
-      const badTool = new GemAddTool({ projectManager: badProjectManager as any });
+      const badTool = new GemAddTool({
+        projectManager: badProjectManager as ProjectManager,
+      });
 
       const result = await badTool.executeAddToGemfile({
         gem_name: 'rails',

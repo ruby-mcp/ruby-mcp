@@ -73,9 +73,9 @@ describe('ProjectManager', () => {
       const manager = new ProjectManager();
       const nonExistentPath = join(tempDir, 'nonexistent');
 
-      await expect(
-        manager.addProject('test', nonExistentPath)
-      ).rejects.toThrow('Project directory does not exist');
+      await expect(manager.addProject('test', nonExistentPath)).rejects.toThrow(
+        'Project directory does not exist'
+      );
     });
 
     it('should throw error for file instead of directory', async () => {
@@ -165,9 +165,9 @@ describe('ProjectManager', () => {
 
     it('should throw error for non-existent project', () => {
       const manager = new ProjectManager();
-      expect(() =>
-        manager.resolveFilePath('file.rb', 'nonexistent')
-      ).toThrow('Project not found');
+      expect(() => manager.resolveFilePath('file.rb', 'nonexistent')).toThrow(
+        'Project not found'
+      );
     });
   });
 
@@ -224,9 +224,7 @@ describe('ProjectManager', () => {
 
   describe('validateProjects', () => {
     it('should validate all projects successfully', async () => {
-      const projects: ProjectConfig[] = [
-        { name: 'test', path: tempDir },
-      ];
+      const projects: ProjectConfig[] = [{ name: 'test', path: tempDir }];
 
       const manager = new ProjectManager(projects);
       await expect(manager.validateProjects()).resolves.not.toThrow();
@@ -250,9 +248,7 @@ describe('ProjectManager', () => {
       const filePath = join(tempDir, 'file.txt');
       await fs.writeFile(filePath, 'content');
 
-      const projects: ProjectConfig[] = [
-        { name: 'bad', path: filePath },
-      ];
+      const projects: ProjectConfig[] = [{ name: 'bad', path: filePath }];
 
       const manager = new ProjectManager(projects);
       await expect(manager.validateProjects()).rejects.toThrow(

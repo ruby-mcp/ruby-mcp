@@ -66,17 +66,19 @@ describe('index.ts - RailsServer', () => {
 
   describe('setupErrorHandling', () => {
     let originalProcessOn: typeof process.on;
-    let eventHandlers: Map<string, Function>;
+    let eventHandlers: Map<string, (...args: unknown[]) => void>;
 
     beforeEach(() => {
       eventHandlers = new Map();
       originalProcessOn = process.on;
 
       // Mock process.on to capture event handlers
-      process.on = vi.fn((event: string, handler: Function) => {
-        eventHandlers.set(event, handler);
-        return process;
-      }) as any;
+      process.on = vi.fn(
+        (event: string, handler: (...args: unknown[]) => void) => {
+          eventHandlers.set(event, handler);
+          return process;
+        }
+      ) as typeof process.on;
     });
 
     afterEach(() => {
@@ -108,12 +110,16 @@ describe('index.ts - RailsServer', () => {
       const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
       server = new RailsServer();
       const handler = eventHandlers.get('uncaughtException');
 
-      expect(() => handler?.(new Error('Test error'))).toThrow('process.exit called');
+      expect(() => handler?.(new Error('Test error'))).toThrow(
+        'process.exit called'
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         '[Uncaught Exception]',
         expect.any(Error)
@@ -128,12 +134,16 @@ describe('index.ts - RailsServer', () => {
       const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
       server = new RailsServer();
       const handler = eventHandlers.get('unhandledRejection');
 
-      expect(() => handler?.('Test rejection', Promise.resolve())).toThrow('process.exit called');
+      expect(() => handler?.('Test rejection', Promise.resolve())).toThrow(
+        'process.exit called'
+      );
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         '[Unhandled Rejection]',
         'Test rejection',
@@ -150,7 +160,9 @@ describe('index.ts - RailsServer', () => {
       const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
-      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleLogSpy = vi
+        .spyOn(console, 'log')
+        .mockImplementation(() => {});
 
       server = new RailsServer();
       const handler = eventHandlers.get('SIGINT');
@@ -169,7 +181,9 @@ describe('index.ts - RailsServer', () => {
       const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
-      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleLogSpy = vi
+        .spyOn(console, 'log')
+        .mockImplementation(() => {});
 
       server = new RailsServer();
       const handler = eventHandlers.get('SIGTERM');
@@ -187,17 +201,19 @@ describe('index.ts - RailsServer', () => {
 
   describe('cleanup', () => {
     let originalProcessOn: typeof process.on;
-    let eventHandlers: Map<string, Function>;
+    let eventHandlers: Map<string, (...args: unknown[]) => void>;
 
     beforeEach(() => {
       eventHandlers = new Map();
       originalProcessOn = process.on;
 
       // Mock process.on to capture event handlers
-      process.on = vi.fn((event: string, handler: Function) => {
-        eventHandlers.set(event, handler);
-        return process;
-      }) as any;
+      process.on = vi.fn(
+        (event: string, handler: (...args: unknown[]) => void) => {
+          eventHandlers.set(event, handler);
+          return process;
+        }
+      ) as typeof process.on;
     });
 
     afterEach(() => {
@@ -211,7 +227,9 @@ describe('index.ts - RailsServer', () => {
       const clearCacheSpy = vi.spyOn(client, 'clearCache');
 
       // Call cleanup through SIGINT handler
-      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleLogSpy = vi
+        .spyOn(console, 'log')
+        .mockImplementation(() => {});
       const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });
@@ -235,10 +253,14 @@ describe('index.ts - RailsServer', () => {
       const client = server.getClient();
 
       // Mock clearCache to throw an error
-      const clearCacheSpy = vi.spyOn(client, 'clearCache').mockImplementation(() => {
-        throw new Error('Cache clear error');
-      });
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const clearCacheSpy = vi
+        .spyOn(client, 'clearCache')
+        .mockImplementation(() => {
+          throw new Error('Cache clear error');
+        });
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
       const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('process.exit called');
       });

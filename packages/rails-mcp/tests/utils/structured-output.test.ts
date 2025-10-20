@@ -113,7 +113,9 @@ describe('structured-output utils', () => {
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Main message');
-      expect(result.content[0].text).toContain('Details: Detailed information here');
+      expect(result.content[0].text).toContain(
+        'Details: Detailed information here'
+      );
     });
 
     it('should not include details section when not provided', () => {
@@ -259,7 +261,10 @@ describe('structured-output utils', () => {
 
   describe('formatFileList', () => {
     it('should format non-empty file list', () => {
-      const files = ['app/models/user.rb', 'app/controllers/users_controller.rb'];
+      const files = [
+        'app/models/user.rb',
+        'app/controllers/users_controller.rb',
+      ];
       const formatted = formatFileList('Files Created', files);
 
       expect(formatted).toContain('Files Created');
@@ -276,18 +281,42 @@ describe('structured-output utils', () => {
   describe('formatGeneratorsList', () => {
     it('should format grouped generators list', () => {
       const generators = [
-        { name: 'model', description: 'Generate a model', namespace: 'active_record' },
-        { name: 'controller', description: 'Generate a controller', namespace: 'rails' },
-        { name: 'migration', description: 'Generate a migration', namespace: 'active_record' },
+        {
+          name: 'model',
+          description: 'Generate a model',
+          namespace: 'active_record',
+        },
+        {
+          name: 'controller',
+          description: 'Generate a controller',
+          namespace: 'rails',
+        },
+        {
+          name: 'migration',
+          description: 'Generate a migration',
+          namespace: 'active_record',
+        },
       ];
 
       const grouped = {
         active_record: [
-          { name: 'model', description: 'Generate a model', namespace: 'active_record' },
-          { name: 'migration', description: 'Generate a migration', namespace: 'active_record' },
+          {
+            name: 'model',
+            description: 'Generate a model',
+            namespace: 'active_record',
+          },
+          {
+            name: 'migration',
+            description: 'Generate a migration',
+            namespace: 'active_record',
+          },
         ],
         rails: [
-          { name: 'controller', description: 'Generate a controller', namespace: 'rails' },
+          {
+            name: 'controller',
+            description: 'Generate a controller',
+            namespace: 'rails',
+          },
         ],
       };
 
@@ -309,7 +338,11 @@ describe('structured-output utils', () => {
         usage: 'rails generate model NAME [field:type]',
         arguments: [
           { name: 'NAME', description: 'Model name', required: true },
-          { name: 'field:type', description: 'Field definitions', required: false },
+          {
+            name: 'field:type',
+            description: 'Field definitions',
+            required: false,
+          },
         ],
         options: [
           {

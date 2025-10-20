@@ -8,6 +8,12 @@ import { EventEmitter } from 'events';
 
 vi.mock('child_process');
 
+// Type for our mocked child process
+type MockChildProcess = EventEmitter & {
+  stdout: EventEmitter;
+  stderr: EventEmitter;
+};
+
 describe('RailsClient', () => {
   let client: RailsClient;
   let tempDir: string;
@@ -47,7 +53,10 @@ describe('RailsClient', () => {
 
     it('should detect Gemfile but not Rails app', async () => {
       // Create Gemfile but no config/application.rb
-      await fs.writeFile(join(tempDir, 'Gemfile'), 'source "https://rubygems.org"');
+      await fs.writeFile(
+        join(tempDir, 'Gemfile'),
+        'source "https://rubygems.org"'
+      );
 
       const result = await client.checkRailsProject(tempDir);
       expect(result.isRailsProject).toBe(true);
@@ -57,7 +66,10 @@ describe('RailsClient', () => {
 
     it('should detect Rails application', async () => {
       // Create Gemfile and config/application.rb
-      await fs.writeFile(join(tempDir, 'Gemfile'), 'source "https://rubygems.org"');
+      await fs.writeFile(
+        join(tempDir, 'Gemfile'),
+        'source "https://rubygems.org"'
+      );
       await fs.mkdir(join(tempDir, 'config'), { recursive: true });
       await fs.writeFile(
         join(tempDir, 'config', 'application.rb'),
@@ -71,7 +83,10 @@ describe('RailsClient', () => {
 
     it('should detect Rails engine', async () => {
       // Create Gemfile and config/application.rb with Engine
-      await fs.writeFile(join(tempDir, 'Gemfile'), 'source "https://rubygems.org"');
+      await fs.writeFile(
+        join(tempDir, 'Gemfile'),
+        'source "https://rubygems.org"'
+      );
       await fs.mkdir(join(tempDir, 'config'), { recursive: true });
       await fs.writeFile(
         join(tempDir, 'config', 'application.rb'),
@@ -84,7 +99,10 @@ describe('RailsClient', () => {
     });
 
     it('should extract Rails version from Gemfile.lock', async () => {
-      await fs.writeFile(join(tempDir, 'Gemfile'), 'source "https://rubygems.org"');
+      await fs.writeFile(
+        join(tempDir, 'Gemfile'),
+        'source "https://rubygems.org"'
+      );
       await fs.writeFile(
         join(tempDir, 'Gemfile.lock'),
         'GEM\n  specs:\n    rails (7.0.4)\n      actionpack (= 7.0.4)'
@@ -96,7 +114,10 @@ describe('RailsClient', () => {
     });
 
     it('should handle missing Gemfile.lock gracefully', async () => {
-      await fs.writeFile(join(tempDir, 'Gemfile'), 'source "https://rubygems.org"');
+      await fs.writeFile(
+        join(tempDir, 'Gemfile'),
+        'source "https://rubygems.org"'
+      );
 
       const result = await client.checkRailsProject(tempDir);
       expect(result.isRailsProject).toBe(true);
@@ -157,7 +178,10 @@ describe('RailsClient', () => {
       const clientWithCache = new RailsClient({ cacheEnabled: true });
 
       // Create a Rails project
-      await fs.writeFile(join(tempDir, 'Gemfile'), 'source "https://rubygems.org"');
+      await fs.writeFile(
+        join(tempDir, 'Gemfile'),
+        'source "https://rubygems.org"'
+      );
       await fs.mkdir(join(tempDir, 'config'), { recursive: true });
       await fs.writeFile(
         join(tempDir, 'config', 'application.rb'),
@@ -165,7 +189,7 @@ describe('RailsClient', () => {
       );
 
       // Mock spawn for listGenerators
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
@@ -176,7 +200,10 @@ describe('RailsClient', () => {
 
       // Simulate command output
       setTimeout(() => {
-        mockChild.stdout.emit('data', 'Please choose a generator below\nmodel\ncontroller\n');
+        mockChild.stdout.emit(
+          'data',
+          'Please choose a generator below\nmodel\ncontroller\n'
+        );
         mockChild.emit('close', 0);
       }, 10);
 
@@ -194,7 +221,10 @@ describe('RailsClient', () => {
   describe('listGenerators with mocked Rails', () => {
     beforeEach(async () => {
       // Create a Rails project
-      await fs.writeFile(join(tempDir, 'Gemfile'), 'source "https://rubygems.org"');
+      await fs.writeFile(
+        join(tempDir, 'Gemfile'),
+        'source "https://rubygems.org"'
+      );
       await fs.mkdir(join(tempDir, 'config'), { recursive: true });
       await fs.writeFile(
         join(tempDir, 'config', 'application.rb'),
@@ -203,7 +233,7 @@ describe('RailsClient', () => {
     });
 
     it('should parse generators list successfully', async () => {
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
@@ -212,7 +242,9 @@ describe('RailsClient', () => {
       const promise = client.listGenerators(tempDir);
 
       setTimeout(() => {
-        mockChild.stdout.emit('data', `
+        mockChild.stdout.emit(
+          'data',
+          `
 Please choose a generator below
 
 Rails:
@@ -223,7 +255,8 @@ Rails:
 
 Active Record:
   active_record:model
-        `);
+        `
+        );
         mockChild.emit('close', 0);
       }, 10);
 
@@ -232,11 +265,11 @@ Active Record:
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
       expect(result.data.length).toBeGreaterThan(0);
-      expect(result.data.some(g => g.name === 'model')).toBe(true);
+      expect(result.data.some((g) => g.name === 'model')).toBe(true);
     });
 
     it('should handle generators with namespaces', async () => {
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
@@ -245,20 +278,23 @@ Active Record:
       const promise = client.listGenerators(tempDir);
 
       setTimeout(() => {
-        mockChild.stdout.emit('data', 'Please choose a generator below\nactive_record:model\nrspec:model\n');
+        mockChild.stdout.emit(
+          'data',
+          'Please choose a generator below\nactive_record:model\nrspec:model\n'
+        );
         mockChild.emit('close', 0);
       }, 10);
 
       const result = await promise;
 
       expect(result.success).toBe(true);
-      const arModel = result.data.find(g => g.name === 'active_record:model');
+      const arModel = result.data.find((g) => g.name === 'active_record:model');
       expect(arModel).toBeDefined();
       expect(arModel?.namespace).toBe('active_record');
     });
 
     it('should handle command errors', async () => {
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
@@ -278,9 +314,12 @@ Active Record:
     });
 
     it('should handle command timeout', async () => {
-      const clientWithTimeout = new RailsClient({ cacheEnabled: false, timeout: 100 });
+      const clientWithTimeout = new RailsClient({
+        cacheEnabled: false,
+        timeout: 100,
+      });
 
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
       mockChild.kill = vi.fn();
@@ -301,7 +340,10 @@ Active Record:
 
   describe('getGeneratorHelp with mocked Rails', () => {
     beforeEach(async () => {
-      await fs.writeFile(join(tempDir, 'Gemfile'), 'source "https://rubygems.org"');
+      await fs.writeFile(
+        join(tempDir, 'Gemfile'),
+        'source "https://rubygems.org"'
+      );
       await fs.mkdir(join(tempDir, 'config'), { recursive: true });
       await fs.writeFile(
         join(tempDir, 'config', 'application.rb'),
@@ -310,7 +352,7 @@ Active Record:
     });
 
     it('should parse generator help successfully', async () => {
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
@@ -319,14 +361,17 @@ Active Record:
       const promise = client.getGeneratorHelp('model', tempDir);
 
       setTimeout(() => {
-        mockChild.stdout.emit('data', `Generates a new model
+        mockChild.stdout.emit(
+          'data',
+          `Generates a new model
 
 Usage: rails generate model NAME [field:type]
 
 Options:
     -s, --skip-migration    Skip migration file
     --force                 Overwrite existing files
-        `);
+        `
+        );
         mockChild.emit('close', 0);
       }, 10);
 
@@ -342,7 +387,10 @@ Options:
 
   describe('generateFiles with mocked Rails', () => {
     beforeEach(async () => {
-      await fs.writeFile(join(tempDir, 'Gemfile'), 'source "https://rubygems.org"');
+      await fs.writeFile(
+        join(tempDir, 'Gemfile'),
+        'source "https://rubygems.org"'
+      );
       await fs.mkdir(join(tempDir, 'config'), { recursive: true });
       await fs.writeFile(
         join(tempDir, 'config', 'application.rb'),
@@ -351,19 +399,27 @@ Options:
     });
 
     it('should parse generate output successfully', async () => {
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
       vi.mocked(spawn).mockReturnValue(mockChild);
 
-      const promise = client.generateFiles('model', ['User', 'name:string'], {}, tempDir);
+      const promise = client.generateFiles(
+        'model',
+        ['User', 'name:string'],
+        {},
+        tempDir
+      );
 
       setTimeout(() => {
-        mockChild.stdout.emit('data', `      create  app/models/user.rb
+        mockChild.stdout.emit(
+          'data',
+          `      create  app/models/user.rb
       create  db/migrate/20240101000000_create_users.rb
       inject  config/routes.rb
-        `);
+        `
+        );
         mockChild.emit('close', 0);
       }, 10);
 
@@ -371,21 +427,28 @@ Options:
 
       expect(result.success).toBe(true);
       expect(result.data.filesCreated).toContain('app/models/user.rb');
-      expect(result.data.filesCreated).toContain('db/migrate/20240101000000_create_users.rb');
+      expect(result.data.filesCreated).toContain(
+        'db/migrate/20240101000000_create_users.rb'
+      );
       expect(result.data.success).toBe(true);
     });
 
     it('should handle boolean options', async () => {
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
       vi.mocked(spawn).mockReturnValue(mockChild);
 
-      const promise = client.generateFiles('model', ['User'], {
-        skip_migration: true,
-        force: false
-      }, tempDir);
+      const promise = client.generateFiles(
+        'model',
+        ['User'],
+        {
+          skip_migration: true,
+          force: false,
+        },
+        tempDir
+      );
 
       setTimeout(() => {
         mockChild.stdout.emit('data', 'create  app/models/user.rb\n');
@@ -403,18 +466,26 @@ Options:
     });
 
     it('should handle array options', async () => {
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
       vi.mocked(spawn).mockReturnValue(mockChild);
 
-      const promise = client.generateFiles('controller', ['Posts'], {
-        actions: ['index', 'show']
-      }, tempDir);
+      const promise = client.generateFiles(
+        'controller',
+        ['Posts'],
+        {
+          actions: ['index', 'show'],
+        },
+        tempDir
+      );
 
       setTimeout(() => {
-        mockChild.stdout.emit('data', 'create  app/controllers/posts_controller.rb\n');
+        mockChild.stdout.emit(
+          'data',
+          'create  app/controllers/posts_controller.rb\n'
+        );
         mockChild.emit('close', 0);
       }, 10);
 
@@ -428,15 +499,20 @@ Options:
     });
 
     it('should handle string options', async () => {
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
       vi.mocked(spawn).mockReturnValue(mockChild);
 
-      const promise = client.generateFiles('model', ['User'], {
-        database: 'postgresql'
-      }, tempDir);
+      const promise = client.generateFiles(
+        'model',
+        ['User'],
+        {
+          database: 'postgresql',
+        },
+        tempDir
+      );
 
       setTimeout(() => {
         mockChild.stdout.emit('data', 'create  app/models/user.rb\n');
@@ -455,7 +531,10 @@ Options:
 
   describe('destroyFiles with mocked Rails', () => {
     beforeEach(async () => {
-      await fs.writeFile(join(tempDir, 'Gemfile'), 'source "https://rubygems.org"');
+      await fs.writeFile(
+        join(tempDir, 'Gemfile'),
+        'source "https://rubygems.org"'
+      );
       await fs.mkdir(join(tempDir, 'config'), { recursive: true });
       await fs.writeFile(
         join(tempDir, 'config', 'application.rb'),
@@ -464,7 +543,7 @@ Options:
     });
 
     it('should parse destroy output successfully', async () => {
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
@@ -473,10 +552,13 @@ Options:
       const promise = client.destroyFiles('model', ['User'], {}, tempDir);
 
       setTimeout(() => {
-        mockChild.stdout.emit('data', `      remove  app/models/user.rb
+        mockChild.stdout.emit(
+          'data',
+          `      remove  app/models/user.rb
       remove  db/migrate/20240101000000_create_users.rb
       revoke  config/routes.rb
-        `);
+        `
+        );
         mockChild.emit('close', 0);
       }, 10);
 
@@ -484,12 +566,14 @@ Options:
 
       expect(result.success).toBe(true);
       expect(result.data.filesRemoved).toContain('app/models/user.rb');
-      expect(result.data.filesRemoved).toContain('db/migrate/20240101000000_create_users.rb');
+      expect(result.data.filesRemoved).toContain(
+        'db/migrate/20240101000000_create_users.rb'
+      );
       expect(result.data.success).toBe(true);
     });
 
     it('should handle gsub action in destroy output', async () => {
-      const mockChild = new EventEmitter() as any;
+      const mockChild = new EventEmitter() as MockChildProcess;
       mockChild.stdout = new EventEmitter();
       mockChild.stderr = new EventEmitter();
 
@@ -498,9 +582,12 @@ Options:
       const promise = client.destroyFiles('scaffold', ['Post'], {}, tempDir);
 
       setTimeout(() => {
-        mockChild.stdout.emit('data', `      remove  app/models/post.rb
+        mockChild.stdout.emit(
+          'data',
+          `      remove  app/models/post.rb
       gsub    config/routes.rb
-        `);
+        `
+        );
         mockChild.emit('close', 0);
       }, 10);
 

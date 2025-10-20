@@ -375,7 +375,11 @@ describe('RubyGemsClient', () => {
       });
 
       // Mock makeRequest to throw a non-Error exception
-      vi.spyOn(badClient as any, 'makeRequest').mockImplementation(() => {
+      type MakeRequestMethod = (url: string) => Promise<unknown>;
+      vi.spyOn(
+        badClient as unknown as { makeRequest: MakeRequestMethod },
+        'makeRequest'
+      ).mockImplementation(() => {
         throw 'string error in getReverseDependencies';
       });
 

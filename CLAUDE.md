@@ -139,10 +139,15 @@ turbo run build --filter=@ruby-mcp/gems-mcp
 ### TypeScript Best Practices
 
 - **Type Safety**: NEVER use `any` type in TypeScript code. This is unacceptable and undermines type safety
-- **Proper Types**: Always provide explicit type definitions or use `unknown` when the type needs runtime checking
+  - Use `Pick<Type, Keys>` or `Partial<Type>` for partial interface implementations in tests
+  - Use `unknown` when the type needs runtime checking
+  - Use proper type narrowing with type guards
+  - Type assertions like `as Type` are acceptable only when narrowing from a properly typed value
+- **Proper Types**: Always provide explicit type definitions for all variables, parameters, and return values
 - **Explicit Annotations**: Prefer explicit type annotations for function parameters and return types
 - **Strict Mode**: All TypeScript files should be compatible with strict mode
 - **No Implicit Any**: The codebase should compile with `noImplicitAny: true`
+- **Linting**: It is UNACCEPTABLE to disable linting errors unless there is absolutely no other option. Always fix the underlying type issue instead.
 
 ## Important Notes
 

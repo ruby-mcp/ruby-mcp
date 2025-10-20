@@ -412,12 +412,14 @@ describe('BundleInstallTool', () => {
 
     it('should handle non-Error exceptions in project resolution', async () => {
       // Mock project manager to throw a non-Error exception
-      const badProjectManager = {
+      const badProjectManager: Pick<ProjectManager, 'getProjectPath'> = {
         getProjectPath: vi.fn().mockImplementation(() => {
           throw 'string error in project resolution';
         }),
       };
-      const badTool = new BundleInstallTool({ projectManager: badProjectManager as any });
+      const badTool = new BundleInstallTool({
+        projectManager: badProjectManager as ProjectManager,
+      });
 
       const result = await badTool.execute({ project: 'test' });
 

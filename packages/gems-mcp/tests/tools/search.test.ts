@@ -82,10 +82,10 @@ describe('SearchTool', () => {
 
   it('should handle non-Error exceptions', async () => {
     // Mock the client to throw a non-Error exception
-    const badClient = {
+    const badClient: Pick<RubyGemsClient, 'searchGems'> = {
       searchGems: vi.fn().mockRejectedValue('string error'),
     };
-    const badTool = new SearchTool({ client: badClient as any });
+    const badTool = new SearchTool({ client: badClient as RubyGemsClient });
 
     const result = await badTool.execute({ query: 'test' });
 

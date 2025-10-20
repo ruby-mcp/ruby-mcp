@@ -240,10 +240,10 @@ describe('DetailsTool', () => {
 
   it('should handle non-Error exceptions', async () => {
     // Mock the client to throw a non-Error exception
-    const badClient = {
+    const badClient: Pick<RubyGemsClient, 'getGemDetails'> = {
       getGemDetails: vi.fn().mockRejectedValue('string error'),
     };
-    const badTool = new DetailsTool({ client: badClient as any });
+    const badTool = new DetailsTool({ client: badClient as RubyGemsClient });
 
     const result = await badTool.execute({ gem_name: 'test' });
 

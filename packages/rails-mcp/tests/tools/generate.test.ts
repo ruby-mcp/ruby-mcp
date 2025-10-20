@@ -25,7 +25,9 @@ describe('GenerateTool', () => {
     it('should reject empty generator_name', async () => {
       const result = await tool.execute({ generator_name: '' });
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Generator name cannot be empty');
+      expect(result.content[0].text).toContain(
+        'Generator name cannot be empty'
+      );
     });
 
     it('should reject generator_name that is too long', async () => {
@@ -168,7 +170,10 @@ describe('GenerateTool', () => {
         success: true,
         data: {
           success: true,
-          filesCreated: ['app/models/user.rb', 'db/migrate/20240101_create_users.rb'],
+          filesCreated: [
+            'app/models/user.rb',
+            'db/migrate/20240101_create_users.rb',
+          ],
           filesModified: ['config/routes.rb'],
           output: 'Generator executed successfully',
         },
@@ -235,7 +240,10 @@ describe('GenerateTool', () => {
         data: {
           success: true,
           filesCreated: ['app/controllers/posts_controller.rb'],
-          filesModified: ['config/routes.rb', 'test/controllers/posts_controller_test.rb'],
+          filesModified: [
+            'config/routes.rb',
+            'test/controllers/posts_controller_test.rb',
+          ],
           output: 'Controller generated',
         },
       });
