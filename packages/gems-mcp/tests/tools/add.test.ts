@@ -436,5 +436,26 @@ end
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Error: File not found');
     });
+
+    it('should handle non-Error exceptions', async () => {
+      const badProjectManager = {
+        getProjectPath: vi.fn().mockReturnValue(tempDir),
+        resolveFilePath: vi.fn().mockImplementation(() => {
+          throw 'string error in add tool';
+        }),
+      };
+      const badTool = new GemAddTool({ projectManager: badProjectManager as any });
+
+      const result = await badTool.executeAddToGemfile({
+        gem_name: 'rails',
+        version: '7.0.0',
+        pin_type: '~>',
+        file_path: 'Gemfile',
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe('Error: Unknown error');
+    });
   });
 });

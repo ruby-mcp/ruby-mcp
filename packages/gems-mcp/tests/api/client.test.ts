@@ -367,5 +367,22 @@ describe('RubyGemsClient', () => {
       expect(result.error).toBe('HTTP 502');
       expect(result.data).toBe(null);
     });
+
+    it('should handle non-Error exceptions in getReverseDependencies', async () => {
+      const badClient = new RubyGemsClient({
+        cacheEnabled: false,
+        rateLimitDelay: 0,
+      });
+
+      // Mock makeRequest to throw a non-Error exception
+      vi.spyOn(badClient as any, 'makeRequest').mockImplementation(() => {
+        throw 'string error in getReverseDependencies';
+      });
+
+      const result = await badClient.getReverseDependencies('test-gem');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Unknown error occurred');
+      expect(result.data).toEqual([]);
+    });
   });
 });

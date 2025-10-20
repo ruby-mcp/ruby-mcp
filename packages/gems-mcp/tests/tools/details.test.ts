@@ -237,4 +237,18 @@ describe('DetailsTool', () => {
     // Restore original method
     client.getGemDetails = originalGetGemDetails;
   });
+
+  it('should handle non-Error exceptions', async () => {
+    // Mock the client to throw a non-Error exception
+    const badClient = {
+      getGemDetails: vi.fn().mockRejectedValue('string error'),
+    };
+    const badTool = new DetailsTool({ client: badClient as any });
+
+    const result = await badTool.execute({ gem_name: 'test' });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('Unexpected error');
+    expect(result.content[0].text).toContain('Unknown error');
+  });
 });

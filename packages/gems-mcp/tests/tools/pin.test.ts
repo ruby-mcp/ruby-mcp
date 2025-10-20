@@ -636,5 +636,24 @@ gem 'pg'
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain('Error: File not found');
     });
+
+    it('should handle non-Error exceptions', async () => {
+      const badProjectManager = {
+        getProjectPath: vi.fn().mockReturnValue(tempDir),
+        resolveFilePath: vi.fn().mockImplementation(() => {
+          throw 'string error in pin tool';
+        }),
+      };
+      const badTool = new GemPinTool({ projectManager: badProjectManager as any });
+
+      const result = await badTool.executeUnpin({
+        gem_name: 'rails',
+        file_path: 'Gemfile',
+        project: 'test',
+      });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toBe('Error: Unknown error');
+    });
   });
 });
