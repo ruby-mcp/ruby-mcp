@@ -70,6 +70,30 @@ describe('SearchTool', () => {
     expect(result.content[0].text).not.toContain('License:');
   });
 
+  it('should handle exactly 1 gem result (singular)', async () => {
+    // This tests the branch where gems.length === 1
+    const args = { query: 'rails', limit: 10 };
+    const result = await searchTool.execute(args);
+
+    expect(result.isError).toBeFalsy();
+    expect(result.content[0].text).toContain('Found 1 gem matching');
+    expect(result.content[0].text).not.toContain('gems matching');
+  });
+
+  it('should handle non-Error exceptions', async () => {
+    // Mock the client to throw a non-Error exception
+    const badClient: Pick<RubyGemsClient, 'searchGems'> = {
+      searchGems: vi.fn().mockRejectedValue('string error'),
+    };
+    const badTool = new SearchTool({ client: badClient as RubyGemsClient });
+
+    const result = await badTool.execute({ query: 'test' });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('Unexpected error');
+    expect(result.content[0].text).toContain('Unknown error');
+  });
+
   it('should handle gems with null/undefined licenses', async () => {
     server.use(
       http.get('https://rubygems.org/api/v1/search.json', ({ request }) => {

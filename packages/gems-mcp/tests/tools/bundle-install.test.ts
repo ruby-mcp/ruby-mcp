@@ -398,4 +398,57 @@ describe('BundleInstallTool', () => {
 
     return mockEventEmitter as unknown as ChildProcess;
   }
+
+  describe('error handling edge cases', () => {
+    it('should handle bundle install failure with project name in error message', async () => {
+      // Create a failing bundle install
+      mockFailedBundleProcess('Bundle install failed', 1);
+
+      const result = await tool.execute({ project: 'test' });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("in project 'test'");
+    });
+
+    it('should handle non-Error exceptions in project resolution', async () => {
+      // Mock project manager to throw a non-Error exception
+      const badProjectManager: Pick<ProjectManager, 'getProjectPath'> = {
+        getProjectPath: vi.fn().mockImplementation(() => {
+          throw 'string error in project resolution';
+        }),
+      };
+      const badTool = new BundleInstallTool({
+        projectManager: badProjectManager as ProjectManager,
+      });
+
+      const result = await badTool.execute({ project: 'test' });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Error:');
+      expect(result.content[0].text).toContain('Unknown error');
+    });
+
+    it('should handle non-Error exceptions', async () => {
+      // Mock spawn to throw a string instead of Error
+      mockSpawn.mockImplementation(() => {
+        throw 'string error';
+      });
+
+      const result = await tool.execute({});
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Unexpected error');
+      expect(result.content[0].text).toContain('Unknown error');
+    });
+
+    it('should handle bundle install failure without project name', async () => {
+      mockFailedBundleProcess('Bundle error', 1);
+
+      const result = await tool.execute({});
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain('Bundle install failed');
+      expect(result.content[0].text).not.toContain('in project');
+    });
+  });
 });
