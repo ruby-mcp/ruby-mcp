@@ -632,6 +632,5 @@ Options:
       expect(result.data.filesModified).toContain('config/routes.rb');
       expect(result.data.success).toBe(true);
     });
-
   });
 });

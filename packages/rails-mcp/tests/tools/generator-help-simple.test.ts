@@ -77,7 +77,11 @@ describe('GeneratorHelpTool - Validation', () => {
           usage: 'rails generate model NAME [field:type]',
           arguments: [
             { name: 'NAME', description: 'Model name', required: true },
-            { name: 'field:type', description: 'Field definitions', required: false },
+            {
+              name: 'field:type',
+              description: 'Field definitions',
+              required: false,
+            },
           ],
           options: [
             {
@@ -130,14 +134,16 @@ describe('GeneratorHelpTool - Validation', () => {
       });
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Failed to get help for generator');
+      expect(result.content[0].text).toContain(
+        'Failed to get help for generator'
+      );
       expect(result.content[0].text).toContain('Generator not found');
     });
 
     it('should handle unexpected errors', async () => {
-      client.checkRailsProject = vi.fn().mockRejectedValue(
-        new Error('Unexpected error')
-      );
+      client.checkRailsProject = vi
+        .fn()
+        .mockRejectedValue(new Error('Unexpected error'));
 
       const result = await tool.execute({ generator_name: 'model' });
 

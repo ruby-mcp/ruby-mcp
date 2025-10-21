@@ -136,9 +136,9 @@ describe('GeneratorsTool - Validation', () => {
     });
 
     it('should handle unexpected errors', async () => {
-      client.checkRailsProject = vi.fn().mockRejectedValue(
-        new Error('Unexpected error')
-      );
+      client.checkRailsProject = vi
+        .fn()
+        .mockRejectedValue(new Error('Unexpected error'));
 
       const result = await tool.execute({ project: 'test' });
 
