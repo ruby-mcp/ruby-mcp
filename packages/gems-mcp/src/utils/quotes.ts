@@ -2,7 +2,7 @@
  * Utility functions for handling quote styles in gem declarations
  */
 
-export type QuoteStyle = 'single' | 'double';
+export type QuoteStyle = "single" | "double";
 
 /**
  * Configuration for quote preferences
@@ -16,15 +16,15 @@ export interface QuoteConfig {
  * Default quote configuration
  */
 export const DEFAULT_QUOTE_CONFIG: QuoteConfig = {
-  gemfile: 'single',
-  gemspec: 'double',
+  gemfile: "single",
+  gemspec: "double",
 };
 
 /**
  * Get the quote character for the specified style
  */
 export function getQuoteChar(style: QuoteStyle): string {
-  return style === 'single' ? "'" : '"';
+  return style === "single" ? "'" : '"';
 }
 
 /**
@@ -50,12 +50,12 @@ export function formatGemDeclaration(
 
   // Add source if provided
   if (options.source) {
-    if (options.source.startsWith('http') || options.source.startsWith('git')) {
+    if (options.source.startsWith("http") || options.source.startsWith("git")) {
       declaration += `, git: ${quote}${options.source}${quote}`;
     } else if (
-      options.source.startsWith('/') ||
-      options.source.startsWith('./') ||
-      options.source.startsWith('../')
+      options.source.startsWith("/") ||
+      options.source.startsWith("./") ||
+      options.source.startsWith("../")
     ) {
       declaration += `, path: ${quote}${options.source}${quote}`;
     } else {
@@ -66,7 +66,7 @@ export function formatGemDeclaration(
   // Add require option if provided
   if (options.require !== undefined) {
     if (options.require === false) {
-      declaration += ', require: false';
+      declaration += ", require: false";
     } else {
       declaration += `, require: ${quote}${options.require}${quote}`;
     }
@@ -83,15 +83,15 @@ export function formatDependencyDeclaration(
   options: {
     version?: string;
     pinType?: string;
-    dependencyType: 'runtime' | 'development';
+    dependencyType: "runtime" | "development";
     quoteStyle: QuoteStyle;
   }
 ): string {
   const quote = getQuoteChar(options.quoteStyle);
   const methodName =
-    options.dependencyType === 'development'
-      ? 'add_development_dependency'
-      : 'add_dependency';
+    options.dependencyType === "development"
+      ? "add_development_dependency"
+      : "add_dependency";
 
   let declaration = `  spec.${methodName} ${quote}${gemName}${quote}`;
 
@@ -108,15 +108,15 @@ export function formatDependencyDeclaration(
  */
 export function parseQuoteStyle(value: string): QuoteStyle {
   const normalized = value.toLowerCase().trim();
-  if (normalized === 'single' || normalized === "'") {
-    return 'single';
-  } else if (normalized === 'double' || normalized === '"') {
-    return 'double';
-  } else {
-    throw new Error(
-      `Invalid quote style: ${value}. Must be 'single' or 'double'`
-    );
+  if (normalized === "single" || normalized === "'") {
+    return "single";
   }
+  if (normalized === "double" || normalized === '"') {
+    return "double";
+  }
+  throw new Error(
+    `Invalid quote style: ${value}. Must be 'single' or 'double'`
+  );
 }
 
 /**
@@ -138,10 +138,10 @@ export function detectQuoteStyle(gemLine: string): QuoteStyle {
   // Look for the first quote after 'gem'
   const match = gemLine.match(/gem\s+(['"])/);
   if (match) {
-    return match[1] === "'" ? 'single' : 'double';
+    return match[1] === "'" ? "single" : "double";
   }
   // Default to single quotes if we can't detect
-  return 'single';
+  return "single";
 }
 
 /**
@@ -151,23 +151,24 @@ export function replaceGemName(
   line: string,
   oldName: string,
   newName: string,
-  preserveQuotes: boolean = true
+  preserveQuotes = true
 ): string {
   if (preserveQuotes) {
     // Preserve existing quote style
-    const singleQuotePattern = new RegExp(`gem\\s+'${oldName}'`, 'g');
-    const doubleQuotePattern = new RegExp(`gem\\s+"${oldName}"`, 'g');
+    const singleQuotePattern = new RegExp(`gem\\s+'${oldName}'`, "g");
+    const doubleQuotePattern = new RegExp(`gem\\s+"${oldName}"`, "g");
 
     if (singleQuotePattern.test(line)) {
       return line.replace(singleQuotePattern, `gem '${newName}'`);
-    } else if (doubleQuotePattern.test(line)) {
+    }
+    if (doubleQuotePattern.test(line)) {
       return line.replace(doubleQuotePattern, `gem "${newName}"`);
     }
   }
 
   // Fallback: replace any quote style
   return line.replace(
-    new RegExp(`gem\\s+['"]${oldName}['"]`, 'g'),
+    new RegExp(`gem\\s+['"]${oldName}['"]`, "g"),
     `gem '${newName}'`
   );
 }

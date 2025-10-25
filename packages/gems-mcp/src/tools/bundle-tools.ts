@@ -2,20 +2,20 @@
  * MCP tools for bundle commands: check, show, audit, and clean
  */
 
-import { spawn } from 'child_process';
-import { validateInput } from '../utils/validation.js';
+import { spawn } from "node:child_process";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { ProjectManager } from "../project-manager.js";
 import {
-  BundleCheckSchema,
-  BundleShowSchema,
-  BundleAuditSchema,
-  BundleCleanSchema,
-  type BundleCheckInput,
-  type BundleShowInput,
   type BundleAuditInput,
+  BundleAuditSchema,
+  type BundleCheckInput,
+  BundleCheckSchema,
   type BundleCleanInput,
-} from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { ProjectManager } from '../project-manager.js';
+  BundleCleanSchema,
+  type BundleShowInput,
+  BundleShowSchema,
+} from "../schemas.js";
+import { validateInput } from "../utils/validation.js";
 
 export class BundleToolsManager {
   private projectManager?: ProjectManager;
@@ -30,7 +30,7 @@ export class BundleToolsManager {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -49,49 +49,48 @@ export class BundleToolsManager {
       return {
         content: [
           {
-            type: 'text',
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
       };
     }
 
-    const bundleArgs = ['check'];
+    const bundleArgs = ["check"];
     if (gemfile) {
-      bundleArgs.push('--gemfile', gemfile);
+      bundleArgs.push("--gemfile", gemfile);
     }
 
     try {
       const result = await this.runBundleCommand(bundleArgs, workingDirectory);
-      const projectInfo = project ? ` in project '${project}'` : '';
+      const projectInfo = project ? ` in project '${project}'` : "";
 
       if (result.success) {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Bundle check passed${projectInfo}\n\n${result.output}`,
             },
           ],
         };
-      } else {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Bundle check failed${projectInfo}\n\n${result.error}`,
-            },
-          ],
-          isError: true,
-        };
       }
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Bundle check failed${projectInfo}\n\n${result.error}`,
+          },
+        ],
+        isError: true,
+      };
     } catch (error) {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error running bundle check: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error running bundle check: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -105,7 +104,7 @@ export class BundleToolsManager {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -125,59 +124,58 @@ export class BundleToolsManager {
       return {
         content: [
           {
-            type: 'text',
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
       };
     }
 
-    const bundleArgs = ['show'];
+    const bundleArgs = ["show"];
 
     if (gem_name) {
       bundleArgs.push(gem_name);
     }
 
     if (paths) {
-      bundleArgs.push('--paths');
+      bundleArgs.push("--paths");
     }
 
     if (outdated) {
-      bundleArgs.push('--outdated');
+      bundleArgs.push("--outdated");
     }
 
     try {
       const result = await this.runBundleCommand(bundleArgs, workingDirectory);
-      const projectInfo = project ? ` in project '${project}'` : '';
-      const gemInfo = gem_name ? ` for gem '${gem_name}'` : '';
+      const projectInfo = project ? ` in project '${project}'` : "";
+      const gemInfo = gem_name ? ` for gem '${gem_name}'` : "";
 
       if (result.success) {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Bundle show${gemInfo}${projectInfo}\n\n${result.output}`,
             },
           ],
         };
-      } else {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Bundle show failed${gemInfo}${projectInfo}\n\n${result.error}`,
-            },
-          ],
-          isError: true,
-        };
       }
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Bundle show failed${gemInfo}${projectInfo}\n\n${result.error}`,
+          },
+        ],
+        isError: true,
+      };
     } catch (error) {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error running bundle show: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error running bundle show: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -191,7 +189,7 @@ export class BundleToolsManager {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -211,77 +209,75 @@ export class BundleToolsManager {
       return {
         content: [
           {
-            type: 'text',
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
       };
     }
 
-    const bundleArgs = ['audit'];
+    const bundleArgs = ["audit"];
 
     if (update) {
-      bundleArgs.push('--update');
+      bundleArgs.push("--update");
     }
 
     if (verbose) {
-      bundleArgs.push('--verbose');
+      bundleArgs.push("--verbose");
     }
 
-    if (format === 'json') {
-      bundleArgs.push('--format', 'json');
+    if (format === "json") {
+      bundleArgs.push("--format", "json");
     }
 
     if (gemfile_lock) {
-      bundleArgs.push('--gemfile-lock', gemfile_lock);
+      bundleArgs.push("--gemfile-lock", gemfile_lock);
     }
 
     try {
       const result = await this.runBundleCommand(bundleArgs, workingDirectory);
-      const projectInfo = project ? ` in project '${project}'` : '';
+      const projectInfo = project ? ` in project '${project}'` : "";
 
       if (result.success) {
-        const output = result.output || 'No vulnerabilities found';
+        const output = result.output || "No vulnerabilities found";
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Bundle audit completed${projectInfo}\n\n${output}`,
             },
           ],
         };
-      } else {
-        // bundle-audit may exit with non-zero when vulnerabilities are found
-        // Check if it's actually an error or just vulnerabilities found
-        const hasOutput = result.output || result.error;
-        if (hasOutput) {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Bundle audit found issues${projectInfo}\n\n${result.error || result.output}`,
-              },
-            ],
-          };
-        } else {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: `Bundle audit failed${projectInfo}\n\nError: bundle-audit command not found or failed to execute. Make sure the bundler-audit gem is installed.`,
-              },
-            ],
-            isError: true,
-          };
-        }
       }
+      // bundle-audit may exit with non-zero when vulnerabilities are found
+      // Check if it's actually an error or just vulnerabilities found
+      const hasOutput = result.output || result.error;
+      if (hasOutput) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Bundle audit found issues${projectInfo}\n\n${result.error || result.output}`,
+            },
+          ],
+        };
+      }
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Bundle audit failed${projectInfo}\n\nError: bundle-audit command not found or failed to execute. Make sure the bundler-audit gem is installed.`,
+          },
+        ],
+        isError: true,
+      };
     } catch (error) {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error running bundle audit: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error running bundle audit: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -295,7 +291,7 @@ export class BundleToolsManager {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -314,55 +310,54 @@ export class BundleToolsManager {
       return {
         content: [
           {
-            type: 'text',
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
       };
     }
 
-    const bundleArgs = ['clean'];
+    const bundleArgs = ["clean"];
 
     if (dry_run) {
-      bundleArgs.push('--dry-run');
+      bundleArgs.push("--dry-run");
     }
 
     if (force) {
-      bundleArgs.push('--force');
+      bundleArgs.push("--force");
     }
 
     try {
       const result = await this.runBundleCommand(bundleArgs, workingDirectory);
-      const projectInfo = project ? ` in project '${project}'` : '';
-      const actionInfo = dry_run ? ' (dry run)' : '';
+      const projectInfo = project ? ` in project '${project}'` : "";
+      const actionInfo = dry_run ? " (dry run)" : "";
 
       if (result.success) {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Bundle clean completed${actionInfo}${projectInfo}\n\n${result.output}`,
             },
           ],
         };
-      } else {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Bundle clean failed${actionInfo}${projectInfo}\n\n${result.error}`,
-            },
-          ],
-          isError: true,
-        };
       }
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Bundle clean failed${actionInfo}${projectInfo}\n\n${result.error}`,
+          },
+        ],
+        isError: true,
+      };
     } catch (error) {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error running bundle clean: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error running bundle clean: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -375,24 +370,24 @@ export class BundleToolsManager {
     cwd: string
   ): Promise<{ success: boolean; output: string; error: string }> {
     return new Promise((resolve) => {
-      const bundleProcess = spawn('bundle', args, {
+      const bundleProcess = spawn("bundle", args, {
         cwd,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ["pipe", "pipe", "pipe"],
         env: { ...process.env },
       });
 
-      let stdout = '';
-      let stderr = '';
+      let stdout = "";
+      let stderr = "";
 
-      bundleProcess.stdout?.on('data', (data) => {
+      bundleProcess.stdout?.on("data", (data) => {
         stdout += data.toString();
       });
 
-      bundleProcess.stderr?.on('data', (data) => {
+      bundleProcess.stderr?.on("data", (data) => {
         stderr += data.toString();
       });
 
-      bundleProcess.on('close', (code) => {
+      bundleProcess.on("close", (code) => {
         const success = code === 0;
         const output = stdout.trim();
         const error = stderr.trim();
@@ -401,14 +396,14 @@ export class BundleToolsManager {
           success,
           output,
           error:
-            error || (!success ? `Command failed with exit code ${code}` : ''),
+            error || (!success ? `Command failed with exit code ${code}` : ""),
         });
       });
 
-      bundleProcess.on('error', (error) => {
+      bundleProcess.on("error", (error) => {
         resolve({
           success: false,
-          output: '',
+          output: "",
           error: `Failed to start bundle command: ${error.message}`,
         });
       });

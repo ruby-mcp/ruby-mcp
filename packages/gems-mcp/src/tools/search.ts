@@ -2,10 +2,10 @@
  * MCP tool for searching gems on RubyGems.org
  */
 
-import { RubyGemsClient } from '../api/client.js';
-import { validateInput } from '../utils/validation.js';
-import { SearchGemsSchema, type SearchGemsInput } from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { RubyGemsClient } from "../api/client.js";
+import { type SearchGemsInput, SearchGemsSchema } from "../schemas.js";
+import { validateInput } from "../utils/validation.js";
 
 export interface SearchToolOptions {
   client: RubyGemsClient;
@@ -25,7 +25,7 @@ export class SearchTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -43,7 +43,7 @@ export class SearchTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Error searching for gems: ${response.error}`,
             },
           ],
@@ -57,7 +57,7 @@ export class SearchTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `No gems found matching query: "${query}"`,
             },
           ],
@@ -67,28 +67,28 @@ export class SearchTool {
       // Format results
       const formattedResults = gems
         .map((gem) => {
-          const authors = gem.authors ? ` by ${gem.authors}` : '';
-          const description = gem.info ? `\n  ${gem.info}` : '';
+          const authors = gem.authors ? ` by ${gem.authors}` : "";
+          const description = gem.info ? `\n  ${gem.info}` : "";
           const licenses =
             gem.licenses && gem.licenses.length > 0
-              ? `\n  License: ${gem.licenses.join(', ')}`
-              : '';
+              ? `\n  License: ${gem.licenses.join(", ")}`
+              : "";
           const downloads = `\n  Downloads: ${gem.downloads.toLocaleString()}`;
           const version = `\n  Latest: ${gem.version}`;
           const homepage = gem.homepage_uri
             ? `\n  Homepage: ${gem.homepage_uri}`
-            : '';
+            : "";
 
           return `• ${gem.name}${authors}${description}${version}${downloads}${licenses}${homepage}`;
         })
-        .join('\n\n');
+        .join("\n\n");
 
-      const summary = `Found ${gems.length} gem${gems.length === 1 ? '' : 's'} matching "${query}":`;
+      const summary = `Found ${gems.length} gem${gems.length === 1 ? "" : "s"} matching "${query}":`;
 
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `${summary}\n\n${formattedResults}`,
           },
         ],
@@ -97,8 +97,8 @@ export class SearchTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error while searching for gems: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error while searching for gems: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,

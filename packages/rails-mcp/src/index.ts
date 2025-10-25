@@ -5,24 +5,24 @@
  * and executing Rails generators with proper validation and error handling.
  */
 
-import { Command } from 'commander';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { RailsClient } from './api/rails-client.js';
-import { GeneratorsTool } from './tools/generators.js';
-import { GeneratorHelpTool } from './tools/generator-help.js';
-import { GenerateTool } from './tools/generate.js';
-import { DestroyTool } from './tools/destroy.js';
-import { ProjectManager, type ProjectConfig } from './project-manager.js';
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Command } from "commander";
+import { RailsClient } from "./api/rails-client.js";
+import { type ProjectConfig, ProjectManager } from "./project-manager.js";
 import {
-  ListGeneratorsSchema,
-  GetGeneratorHelpSchema,
-  GenerateSchema,
   DestroySchema,
-} from './schemas.js';
+  GenerateSchema,
+  GetGeneratorHelpSchema,
+  ListGeneratorsSchema,
+} from "./schemas.js";
+import { DestroyTool } from "./tools/destroy.js";
+import { GenerateTool } from "./tools/generate.js";
+import { GeneratorHelpTool } from "./tools/generator-help.js";
+import { GeneratorsTool } from "./tools/generators.js";
 
 export class RailsServer {
   private server: McpServer;
@@ -36,8 +36,8 @@ export class RailsServer {
   constructor(projectManager?: ProjectManager) {
     // Initialize server
     this.server = new McpServer({
-      name: '@ruby-mcp/rails-mcp',
-      version: '0.1.0',
+      name: "@ruby-mcp/rails-mcp",
+      version: "0.1.0",
     });
 
     // Initialize project manager
@@ -75,10 +75,10 @@ export class RailsServer {
   private setupTools(): void {
     // Register list_generators tool
     this.server.registerTool(
-      'list_generators',
+      "list_generators",
       {
         description:
-          'List all available Rails generators in a Rails project with descriptions',
+          "List all available Rails generators in a Rails project with descriptions",
         inputSchema: ListGeneratorsSchema.shape,
       },
       async (args) => this.generatorsTool.execute(args)
@@ -86,10 +86,10 @@ export class RailsServer {
 
     // Register get_generator_help tool
     this.server.registerTool(
-      'get_generator_help',
+      "get_generator_help",
       {
         description:
-          'Get detailed help for a specific Rails generator including options and usage examples',
+          "Get detailed help for a specific Rails generator including options and usage examples",
         inputSchema: GetGeneratorHelpSchema.shape,
       },
       async (args) => this.generatorHelpTool.execute(args)
@@ -97,10 +97,10 @@ export class RailsServer {
 
     // Register generate tool
     this.server.registerTool(
-      'generate',
+      "generate",
       {
         description:
-          'Execute a Rails generator with specified arguments and options',
+          "Execute a Rails generator with specified arguments and options",
         inputSchema: GenerateSchema.shape,
       },
       async (args) => this.generateTool.execute(args)
@@ -108,10 +108,10 @@ export class RailsServer {
 
     // Register destroy tool
     this.server.registerTool(
-      'destroy',
+      "destroy",
       {
         description:
-          'Execute a Rails destroy command with specified arguments and options',
+          "Execute a Rails destroy command with specified arguments and options",
         inputSchema: DestroySchema.shape,
       },
       async (args) => this.destroyTool.execute(args)
@@ -122,26 +122,26 @@ export class RailsServer {
     // Error handling is managed through try-catch blocks in tool handlers
 
     // Handle uncaught exceptions
-    process.on('uncaughtException', (error) => {
-      console.error('[Uncaught Exception]', error);
+    process.on("uncaughtException", (error) => {
+      console.error("[Uncaught Exception]", error);
       process.exit(1);
     });
 
     // Handle unhandled promise rejections
-    process.on('unhandledRejection', (reason, promise) => {
-      console.error('[Unhandled Rejection]', reason, 'at', promise);
+    process.on("unhandledRejection", (reason, promise) => {
+      console.error("[Unhandled Rejection]", reason, "at", promise);
       process.exit(1);
     });
 
     // Graceful shutdown
-    process.on('SIGINT', async () => {
-      console.log('Received SIGINT, shutting down gracefully...');
+    process.on("SIGINT", async () => {
+      console.log("Received SIGINT, shutting down gracefully...");
       await this.cleanup();
       process.exit(0);
     });
 
-    process.on('SIGTERM', async () => {
-      console.log('Received SIGTERM, shutting down gracefully...');
+    process.on("SIGTERM", async () => {
+      console.log("Received SIGTERM, shutting down gracefully...");
       await this.cleanup();
       process.exit(0);
     });
@@ -155,16 +155,16 @@ export class RailsServer {
       // Close server if needed
       // The MCP SDK handles server cleanup automatically
 
-      console.log('Cleanup completed');
+      console.log("Cleanup completed");
     } catch (error) {
-      console.error('Error during cleanup:', error);
+      console.error("Error during cleanup:", error);
     }
   }
 
   async start(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Rails MCP Server running on stdio');
+    console.error("Rails MCP Server running on stdio");
   }
 
   // Expose server for testing
@@ -192,18 +192,18 @@ function getPackageInfo(): { version: string; description: string } {
   try {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    const packagePath = join(__dirname, '..', 'package.json');
-    const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
+    const packagePath = join(__dirname, "..", "package.json");
+    const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
     return {
       version: packageJson.version,
       description: packageJson.description,
     };
-  } catch (error) {
+  } catch (_error) {
     // Fallback values if package.json can't be read
     return {
-      version: '0.1.0',
+      version: "0.1.0",
       description:
-        'MCP server for interacting with Rails CLI - list generators, get help, and execute Rails generators',
+        "MCP server for interacting with Rails CLI - list generators, get help, and execute Rails generators",
     };
   }
 }
@@ -213,12 +213,12 @@ function setupCommander(): Command {
   const { version, description } = getPackageInfo();
 
   program
-    .name('rails-mcp')
+    .name("rails-mcp")
     .description(description)
     .version(version)
     .option(
-      '-p, --project <project...>',
-      'Configure projects. Format: name:path or path (can be specified multiple times)'
+      "-p, --project <project...>",
+      "Configure projects. Format: name:path or path (can be specified multiple times)"
     )
     .parse();
 
@@ -234,12 +234,12 @@ function parseCommandLineArgs(program: Command): {
   // Parse project configurations
   if (options.project) {
     for (const projectDef of options.project) {
-      const colonIndex = projectDef.indexOf(':');
+      const colonIndex = projectDef.indexOf(":");
 
       if (colonIndex === -1) {
         // If no colon, treat the whole thing as a path with name derived from directory name
         const path = projectDef;
-        const name = path.split('/').pop() || 'unnamed';
+        const name = path.split("/").pop() || "unnamed";
         projects.push({ name, path });
       } else {
         // Split by first colon to get name:path
@@ -280,15 +280,15 @@ async function main(): Promise<void> {
 
     if (projectConfigs.length > 0) {
       console.error(
-        `Rails MCP Server running with ${projectConfigs.length} configured project(s): ${projectManager.getProjectNames().join(', ')}`
+        `Rails MCP Server running with ${projectConfigs.length} configured project(s): ${projectManager.getProjectNames().join(", ")}`
       );
     } else {
       console.error(
-        'Rails MCP Server running with default project (current directory)'
+        "Rails MCP Server running with default project (current directory)"
       );
     }
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 }
@@ -299,17 +299,17 @@ const isMainModule =
   process.argv[1] &&
   (import.meta.url === `file://${process.argv[1]}` ||
     import.meta.url.endsWith(process.argv[1]) ||
-    process.argv[1].endsWith('index.js') ||
-    process.argv[1].endsWith('rails-mcp'));
+    process.argv[1].endsWith("index.js") ||
+    process.argv[1].endsWith("rails-mcp"));
 
 if (isMainModule) {
   main().catch((error) => {
-    console.error('Failed to start server:', error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   });
 }
 
 // Export for use in other modules
-export { RailsClient } from './api/rails-client.js';
-export * from './types.js';
-export * from './schemas.js';
+export { RailsClient } from "./api/rails-client.js";
+export * from "./types.js";
+export * from "./schemas.js";

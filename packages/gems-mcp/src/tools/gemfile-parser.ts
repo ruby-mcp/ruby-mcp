@@ -2,12 +2,12 @@
  * MCP tool for parsing Gemfiles and Gemspecs to extract gem dependencies and versions
  */
 
-import { promises as fs } from 'fs';
-import { basename, extname } from 'path';
-import { validateInput } from '../utils/validation.js';
-import { GemfileParserSchema, type GemfileParserInput } from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { ProjectManager } from '../project-manager.js';
+import { promises as fs } from "node:fs";
+import { basename, extname } from "node:path";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { ProjectManager } from "../project-manager.js";
+import { type GemfileParserInput, GemfileParserSchema } from "../schemas.js";
+import { validateInput } from "../utils/validation.js";
 
 export interface ParsedGem {
   name: string;
@@ -23,7 +23,7 @@ export interface ParsedGemfile {
   ruby_version?: string;
   source?: string;
   path: string;
-  type: 'gemfile' | 'gemspec';
+  type: "gemfile" | "gemspec";
 }
 
 export class GemfileParserTool {
@@ -40,7 +40,7 @@ export class GemfileParserTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -60,8 +60,8 @@ export class GemfileParserTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -77,7 +77,7 @@ export class GemfileParserTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Error: ${resolvedFilePath} is not a file`,
             },
           ],
@@ -86,22 +86,22 @@ export class GemfileParserTool {
       }
 
       // Read file content
-      const content = await fs.readFile(resolvedFilePath, 'utf-8');
+      const content = await fs.readFile(resolvedFilePath, "utf-8");
       const fileName = basename(resolvedFilePath).toLowerCase();
       const fileExt = extname(resolvedFilePath).toLowerCase();
 
       let result: ParsedGemfile;
 
       // Determine file type and parse accordingly
-      if (fileName === 'gemfile' || fileName.endsWith('gemfile')) {
+      if (fileName === "gemfile" || fileName.endsWith("gemfile")) {
         result = this.parseGemfile(content, resolvedFilePath);
-      } else if (fileExt === '.gemspec') {
+      } else if (fileExt === ".gemspec") {
         result = this.parseGemspec(content, resolvedFilePath);
       } else {
         // Try to auto-detect based on content
         if (
-          content.includes('Gem::Specification.new') ||
-          content.includes('spec.add_dependency')
+          content.includes("Gem::Specification.new") ||
+          content.includes("spec.add_dependency")
         ) {
           result = this.parseGemspec(content, resolvedFilePath);
         } else {
@@ -115,28 +115,29 @@ export class GemfileParserTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: jsonResult,
           },
         ],
       };
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message.includes('ENOENT')) {
+        if (error.message.includes("ENOENT")) {
           return {
             content: [
               {
-                type: 'text',
+                type: "text",
                 text: `Error: File not found: ${resolvedFilePath}`,
               },
             ],
             isError: true,
           };
-        } else if (error.message.includes('EACCES')) {
+        }
+        if (error.message.includes("EACCES")) {
           return {
             content: [
               {
-                type: 'text',
+                type: "text",
                 text: `Error: Permission denied reading file: ${resolvedFilePath}`,
               },
             ],
@@ -148,8 +149,8 @@ export class GemfileParserTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error parsing gemfile: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error parsing gemfile: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -161,10 +162,10 @@ export class GemfileParserTool {
     const result: ParsedGemfile = {
       gems: [],
       path: filePath,
-      type: 'gemfile',
+      type: "gemfile",
     };
 
-    const lines = content.split('\n');
+    const lines = content.split("\n");
     let currentGroup: string[] = [];
     let currentSource: string | undefined;
 
@@ -172,7 +173,7 @@ export class GemfileParserTool {
       const line = lines[i].trim();
 
       // Skip comments and empty lines
-      if (!line || line.startsWith('#')) continue;
+      if (!line || line.startsWith("#")) continue;
 
       // Parse ruby version
       const rubyVersionMatch = line.match(/ruby\s+['"]([^'"]+)['"]/);
@@ -200,7 +201,7 @@ export class GemfileParserTool {
       }
 
       // Check for end of group
-      if (line === 'end' && currentGroup.length > 0) {
+      if (line === "end" && currentGroup.length > 0) {
         currentGroup = [];
         continue;
       }
@@ -212,7 +213,7 @@ export class GemfileParserTool {
       if (gemMatch) {
         const gemName = gemMatch[1];
         const versionRequirement = gemMatch[2];
-        const restOfLine = gemMatch[3] || '';
+        const restOfLine = gemMatch[3] || "";
 
         const gem: ParsedGem = {
           name: gemName,
@@ -241,16 +242,16 @@ export class GemfileParserTool {
     const result: ParsedGemfile = {
       gems: [],
       path: filePath,
-      type: 'gemspec',
+      type: "gemspec",
     };
 
-    const lines = content.split('\n');
+    const lines = content.split("\n");
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
 
       // Skip comments and empty lines
-      if (!line || line.startsWith('#')) continue;
+      if (!line || line.startsWith("#")) continue;
 
       // Parse runtime dependencies
       const runtimeDepMatch = line.match(
@@ -273,7 +274,7 @@ export class GemfileParserTool {
         const gem: ParsedGem = {
           name: devDepMatch[1],
           requirement: devDepMatch[2],
-          group: ['development'],
+          group: ["development"],
         };
         result.gems.push(gem);
         continue;
@@ -285,7 +286,6 @@ export class GemfileParserTool {
       );
       if (rubyVersionMatch) {
         result.ruby_version = rubyVersionMatch[1];
-        continue;
       }
     }
 
@@ -297,15 +297,15 @@ export class GemfileParserTool {
     const groups: string[] = [];
 
     // Remove parentheses if present
-    groupStr = groupStr.replace(/[()]/g, '');
+    const cleanGroupStr = groupStr.replace(/[()]/g, "");
 
     // Handle array format like [:development, :test]
-    if (groupStr.includes('[') && groupStr.includes(']')) {
-      const arrayMatch = groupStr.match(/\[([^\]]+)\]/);
+    if (cleanGroupStr.includes("[") && cleanGroupStr.includes("]")) {
+      const arrayMatch = cleanGroupStr.match(/\[([^\]]+)\]/);
       if (arrayMatch) {
-        const items = arrayMatch[1].split(',').map((item) => item.trim());
+        const items = arrayMatch[1].split(",").map((item) => item.trim());
         for (const item of items) {
-          const cleanItem = item.replace(/^['":]+|['":]+$/g, '');
+          const cleanItem = item.replace(/^['":]+|['":]+$/g, "");
           if (cleanItem) {
             groups.push(cleanItem);
           }
@@ -315,11 +315,11 @@ export class GemfileParserTool {
     }
 
     // Handle single group or multiple groups separated by commas
-    const parts = groupStr.split(',').map((part) => part.trim());
+    const parts = cleanGroupStr.split(",").map((part) => part.trim());
 
     for (const part of parts) {
       // Remove quotes and colons
-      const cleanPart = part.replace(/^['":]+|['":]+$/g, '');
+      const cleanPart = part.replace(/^['":]+|['":]+$/g, "");
       if (cleanPart) {
         groups.push(cleanPart);
       }
@@ -361,12 +361,12 @@ export class GemfileParserTool {
     const platforms: string[] = [];
 
     // Handle array format [:ruby, :jruby]
-    if (platformStr.includes('[') && platformStr.includes(']')) {
+    if (platformStr.includes("[") && platformStr.includes("]")) {
       const arrayMatch = platformStr.match(/\[([^\]]+)\]/);
       if (arrayMatch) {
-        const items = arrayMatch[1].split(',').map((item) => item.trim());
+        const items = arrayMatch[1].split(",").map((item) => item.trim());
         for (const item of items) {
-          const cleanItem = item.replace(/^['":]+|['":]+$/g, '');
+          const cleanItem = item.replace(/^['":]+|['":]+$/g, "");
           if (cleanItem) {
             platforms.push(cleanItem);
           }
@@ -374,7 +374,7 @@ export class GemfileParserTool {
       }
     } else {
       // Handle single platform format
-      const cleanPlatform = platformStr.replace(/^['":]+|['":]+$/g, '');
+      const cleanPlatform = platformStr.replace(/^['":]+|['":]+$/g, "");
       if (cleanPlatform) {
         platforms.push(cleanPlatform);
       }

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-describe('index.ts main execution', () => {
+describe("index.ts main execution", () => {
   let originalArgv: string[];
   let originalExit: typeof process.exit;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
@@ -9,9 +9,11 @@ describe('index.ts main execution', () => {
   beforeEach(() => {
     originalArgv = [...process.argv];
     originalExit = process.exit;
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit called');
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
+      /* Mock implementation - intentionally empty */
+    });
+    exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("process.exit called");
     });
   });
 
@@ -22,12 +24,12 @@ describe('index.ts main execution', () => {
     exitSpy.mockRestore();
   });
 
-  it('should not execute main when imported as module', async () => {
+  it("should not execute main when imported as module", async () => {
     // This test covers the case where import.meta.url !== `file://${process.argv[1]}`
     // The condition should be false when the file is imported as a module
 
     // Import the module (this should not trigger main execution)
-    const module = await import('../src/index.js');
+    const module = await import("../src/index.js");
 
     // Verify that exports are available
     expect(module.RubyGemsClient).toBeDefined();
@@ -38,13 +40,13 @@ describe('index.ts main execution', () => {
     expect(exitSpy).not.toHaveBeenCalled();
   });
 
-  it('should handle main execution errors when run directly', async () => {
+  it("should handle main execution errors when run directly", async () => {
     // This tests the main execution path and error handling
     // We can't directly test the main() execution path in a unit test
     // since it requires import.meta.url checks, but we can test the
     // error handling logic by verifying the structure exists
 
-    const module = await import('../src/index.js');
+    const module = await import("../src/index.js");
 
     // Verify the main execution structure exists (the lines that need coverage)
     // These are the actual lines that were not covered in the original report:
@@ -54,7 +56,7 @@ describe('index.ts main execution', () => {
     // We can indirectly verify this by checking that the module
     // doesn't throw when imported (normal case) and has the right structure
     expect(module).toBeDefined();
-    expect(typeof module.RubyGemsClient).toBe('function');
+    expect(typeof module.RubyGemsClient).toBe("function");
 
     // Since the main() function is only called when import.meta.url === file://process.argv[1]
     // and this condition is false when running tests (since we're importing the module),
@@ -63,8 +65,8 @@ describe('index.ts main execution', () => {
     // which is complex for this unit test scenario.
   });
 
-  it('should export all required modules', async () => {
-    const module = await import('../src/index.js');
+  it("should export all required modules", async () => {
+    const module = await import("../src/index.js");
 
     // Test that all exports are available
     expect(module.RubyGemsClient).toBeDefined();
@@ -73,7 +75,7 @@ describe('index.ts main execution', () => {
     // Test that types are exported (they should be available at build time)
     // We can't directly test type exports at runtime, but we can verify
     // the module structure is correct
-    expect(typeof module.RubyGemsClient).toBe('function');
-    expect(typeof module.ApiCache).toBe('function');
+    expect(typeof module.RubyGemsClient).toBe("function");
+    expect(typeof module.ApiCache).toBe("function");
   });
 });

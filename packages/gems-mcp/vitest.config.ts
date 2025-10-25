@@ -1,12 +1,12 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    environment: 'node',
+    environment: "node",
     globals: true,
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      provider: "v8",
+      reporter: ["text", "json", "html"],
       thresholds: {
         lines: 90,
         functions: 90,
@@ -14,14 +14,14 @@ export default defineConfig({
         statements: 90,
       },
       exclude: [
-        'dist/**',
-        'tests/**',
-        '**/*.d.ts',
-        'vitest.config.ts',
-        'tsup.config.ts',
+        "dist/**",
+        "tests/**",
+        "**/*.d.ts",
+        "vitest.config.ts",
+        "tsup.config.ts",
       ],
     },
-    setupFiles: ['./tests/setup.ts'],
-    pool: 'forks',
+    setupFiles: ["./tests/setup.ts"],
+    pool: "forks",
   },
 });

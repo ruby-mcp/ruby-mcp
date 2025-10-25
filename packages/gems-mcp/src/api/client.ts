@@ -4,13 +4,13 @@
 
 // Using native fetch for better MSW compatibility
 import type {
-  GemDetails,
-  GemVersion,
-  GemSearchResult,
-  ReverseDependency,
   ApiResponse,
-} from '../types.js';
-import { ApiCache } from './cache.js';
+  GemDetails,
+  GemSearchResult,
+  GemVersion,
+  ReverseDependency,
+} from "../types.js";
+import { ApiCache } from "./cache.js";
 
 export interface RubyGemsClientOptions {
   baseUrl?: string;
@@ -31,9 +31,9 @@ export class RubyGemsClient {
   private lastRequestTime = 0;
 
   constructor(options: RubyGemsClientOptions = {}) {
-    this.baseUrl = options.baseUrl ?? 'https://rubygems.org';
+    this.baseUrl = options.baseUrl ?? "https://rubygems.org";
     this.timeout = options.timeout ?? 10000;
-    this.userAgent = options.userAgent ?? '@ruby-mcp/gems-mcp/0.1.0';
+    this.userAgent = options.userAgent ?? "@ruby-mcp/gems-mcp/0.1.0";
     this.cacheEnabled = options.cacheEnabled ?? true;
     this.rateLimitDelay = options.rateLimitDelay ?? 100;
     this.cache = new ApiCache(options.cacheTtl);
@@ -41,9 +41,9 @@ export class RubyGemsClient {
 
   async searchGems(
     query: string,
-    limit: number = 10
+    limit = 10
   ): Promise<ApiResponse<GemSearchResult[]>> {
-    const cacheKey = ApiCache.generateKey('search', { query, limit });
+    const cacheKey = ApiCache.generateKey("search", { query, limit });
 
     if (this.cacheEnabled) {
       const cached = this.cache.get<GemSearchResult[]>(cacheKey);
@@ -76,13 +76,13 @@ export class RubyGemsClient {
         data: [],
         success: false,
         error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
 
   async getGemDetails(gemName: string): Promise<ApiResponse<GemDetails>> {
-    const cacheKey = ApiCache.generateKey('gem', { name: gemName });
+    const cacheKey = ApiCache.generateKey("gem", { name: gemName });
 
     if (this.cacheEnabled) {
       const cached = this.cache.get<GemDetails>(cacheKey);
@@ -111,13 +111,13 @@ export class RubyGemsClient {
         data: {} as GemDetails,
         success: false,
         error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
 
   async getGemVersions(gemName: string): Promise<ApiResponse<GemVersion[]>> {
-    const cacheKey = ApiCache.generateKey('versions', { name: gemName });
+    const cacheKey = ApiCache.generateKey("versions", { name: gemName });
 
     if (this.cacheEnabled) {
       const cached = this.cache.get<GemVersion[]>(cacheKey);
@@ -146,13 +146,13 @@ export class RubyGemsClient {
         data: [],
         success: false,
         error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
 
   async getLatestVersion(gemName: string): Promise<ApiResponse<GemVersion>> {
-    const cacheKey = ApiCache.generateKey('latest', { name: gemName });
+    const cacheKey = ApiCache.generateKey("latest", { name: gemName });
 
     if (this.cacheEnabled) {
       const cached = this.cache.get<GemVersion>(cacheKey);
@@ -200,7 +200,7 @@ export class RubyGemsClient {
         data: {} as GemVersion,
         success: false,
         error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
@@ -208,7 +208,7 @@ export class RubyGemsClient {
   async getReverseDependencies(
     gemName: string
   ): Promise<ApiResponse<ReverseDependency[]>> {
-    const cacheKey = ApiCache.generateKey('reverse_deps', { name: gemName });
+    const cacheKey = ApiCache.generateKey("reverse_deps", { name: gemName });
 
     if (this.cacheEnabled) {
       const cached = this.cache.get<ReverseDependency[]>(cacheKey);
@@ -239,7 +239,7 @@ export class RubyGemsClient {
         data: [],
         success: false,
         error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
@@ -259,10 +259,10 @@ export class RubyGemsClient {
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
       const response = await fetch(url, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'User-Agent': this.userAgent,
-          Accept: 'application/json',
+          "User-Agent": this.userAgent,
+          Accept: "application/json",
         },
         signal: controller.signal,
       });
@@ -273,7 +273,7 @@ export class RubyGemsClient {
         return {
           data: null,
           success: false,
-          error: 'Resource not found',
+          error: "Resource not found",
         };
       }
 
@@ -281,7 +281,7 @@ export class RubyGemsClient {
         return {
           data: null,
           success: false,
-          error: 'Rate limit exceeded',
+          error: "Rate limit exceeded",
         };
       }
 
@@ -304,7 +304,7 @@ export class RubyGemsClient {
         data: null,
         success: false,
         error:
-          error instanceof Error ? error.message : 'Network request failed',
+          error instanceof Error ? error.message : "Network request failed",
       };
     }
   }

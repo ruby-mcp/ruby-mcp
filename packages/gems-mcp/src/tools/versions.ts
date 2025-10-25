@@ -2,18 +2,18 @@
  * MCP tools for getting gem version information
  */
 
-import { RubyGemsClient } from '../api/client.js';
-import { validateInput } from '../utils/validation.js';
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { RubyGemsClient } from "../api/client.js";
 import {
-  GemVersionsSchema,
-  LatestVersionSchema,
+  type GemDependenciesInput,
   GemDependenciesSchema,
   type GemVersionsInput,
+  GemVersionsSchema,
   type LatestVersionInput,
-  type GemDependenciesInput,
-} from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { GemVersion } from '../types.js';
+  LatestVersionSchema,
+} from "../schemas.js";
+import type { GemVersion } from "../types.js";
+import { validateInput } from "../utils/validation.js";
 
 export interface VersionsToolOptions {
   client: RubyGemsClient;
@@ -33,7 +33,7 @@ export class VersionsTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -52,7 +52,7 @@ export class VersionsTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Error getting gem versions: ${response.error}`,
             },
           ],
@@ -71,8 +71,8 @@ export class VersionsTool {
         return {
           content: [
             {
-              type: 'text',
-              text: `No ${include_prerelease ? '' : 'stable '}versions found for gem: ${gem_name}`,
+              type: "text",
+              text: `No ${include_prerelease ? "" : "stable "}versions found for gem: ${gem_name}`,
             },
           ],
         };
@@ -86,14 +86,14 @@ export class VersionsTool {
 
       // Format version list
       let output = `# Versions for ${gem_name}\n\n`;
-      output += `Found ${versions.length} version${versions.length === 1 ? '' : 's'}${include_prerelease ? ' (including prerelease)' : ''}:\n\n`;
+      output += `Found ${versions.length} version${versions.length === 1 ? "" : "s"}${include_prerelease ? " (including prerelease)" : ""}:\n\n`;
 
-      versions.forEach((version) => {
+      for (const version of versions) {
         const releaseDate = new Date(version.created_at).toLocaleDateString();
         const platform =
-          version.platform !== 'ruby' ? ` (${version.platform})` : '';
-        const prerelease = version.prerelease ? ' [PRERELEASE]' : '';
-        const downloads = version.downloads_count?.toLocaleString() ?? 'N/A';
+          version.platform !== "ruby" ? ` (${version.platform})` : "";
+        const prerelease = version.prerelease ? " [PRERELEASE]" : "";
+        const downloads = version.downloads_count?.toLocaleString() ?? "N/A";
 
         output += `• **${version.number}**${platform}${prerelease}\n`;
         output += `  Released: ${releaseDate}\n`;
@@ -107,13 +107,13 @@ export class VersionsTool {
           output += `  Ruby Version: ${version.ruby_version}\n`;
         }
 
-        output += '\n';
-      });
+        output += "\n";
+      }
 
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: output,
           },
         ],
@@ -122,8 +122,8 @@ export class VersionsTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error while getting gem versions: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error while getting gem versions: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -138,7 +138,7 @@ export class VersionsTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -157,7 +157,7 @@ export class VersionsTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Error getting latest version: ${response.error}`,
             },
           ],
@@ -180,7 +180,7 @@ export class VersionsTool {
             return {
               content: [
                 {
-                  type: 'text',
+                  type: "text",
                   text: `No stable versions found for gem: ${gem_name}. Latest version ${version.number} is a prerelease.`,
                 },
               ],
@@ -204,8 +204,8 @@ export class VersionsTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error while getting latest version: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error while getting latest version: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -220,7 +220,7 @@ export class VersionsTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -238,7 +238,7 @@ export class VersionsTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Error getting dependencies: ${response.error}`,
             },
           ],
@@ -252,7 +252,7 @@ export class VersionsTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `No gems depend on ${gem_name}.`,
             },
           ],
@@ -260,16 +260,16 @@ export class VersionsTool {
       }
 
       let output = `# Reverse Dependencies for ${gem_name}\n\n`;
-      output += `${dependencies.length} gem${dependencies.length === 1 ? '' : 's'} depend${dependencies.length === 1 ? 's' : ''} on ${gem_name}:\n\n`;
+      output += `${dependencies.length} gem${dependencies.length === 1 ? "" : "s"} depend${dependencies.length === 1 ? "s" : ""} on ${gem_name}:\n\n`;
 
-      dependencies.forEach((dep) => {
+      for (const dep of dependencies) {
         output += `• ${dep.name}\n`;
-      });
+      }
 
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: output,
           },
         ],
@@ -278,8 +278,8 @@ export class VersionsTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error while getting dependencies: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error while getting dependencies: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -294,11 +294,11 @@ export class VersionsTool {
   ): CallToolResult {
     const releaseDate = new Date(version.created_at).toLocaleDateString();
     const platform =
-      version.platform !== 'ruby' ? ` (${version.platform})` : '';
-    const prerelease = version.prerelease ? ' [PRERELEASE]' : '';
-    const downloads = version.downloads_count?.toLocaleString() ?? 'N/A';
+      version.platform !== "ruby" ? ` (${version.platform})` : "";
+    const prerelease = version.prerelease ? " [PRERELEASE]" : "";
+    const downloads = version.downloads_count?.toLocaleString() ?? "N/A";
 
-    let output = `# Latest ${includePrerelease ? '' : 'Stable '}Version for ${gemName}\n\n`;
+    let output = `# Latest ${includePrerelease ? "" : "Stable "}Version for ${gemName}\n\n`;
     output += `**${version.number}**${platform}${prerelease}\n\n`;
     output += `- **Released:** ${releaseDate}\n`;
     output += `- **Downloads:** ${downloads}\n`;
@@ -324,7 +324,7 @@ export class VersionsTool {
     }
 
     if (version.licenses && version.licenses.length > 0) {
-      output += `- **License:** ${version.licenses.join(', ')}\n`;
+      output += `- **License:** ${version.licenses.join(", ")}\n`;
     }
 
     if (version.sha) {
@@ -334,7 +334,7 @@ export class VersionsTool {
     return {
       content: [
         {
-          type: 'text',
+          type: "text",
           text: output,
         },
       ],

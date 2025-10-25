@@ -2,17 +2,17 @@
  * Rails CLI client for executing Rails commands and parsing output
  */
 
-import { spawn } from 'child_process';
-import { promises as fs } from 'fs';
-import { join } from 'path';
+import { spawn } from "node:child_process";
+import { promises as fs } from "node:fs";
+import { join } from "node:path";
 import type {
   ApiResponse,
-  RailsGenerator,
-  GeneratorHelp,
-  RailsProjectInfo,
-  GenerateResult,
   DestroyResult,
-} from '../types.js';
+  GenerateResult,
+  GeneratorHelp,
+  RailsGenerator,
+  RailsProjectInfo,
+} from "../types.js";
 
 export interface RailsClientOptions {
   timeout?: number;
@@ -38,8 +38,8 @@ export class RailsClient {
   async checkRailsProject(projectPath: string): Promise<RailsProjectInfo> {
     try {
       // Check for Gemfile and config/application.rb
-      const gemfilePath = join(projectPath, 'Gemfile');
-      const applicationPath = join(projectPath, 'config', 'application.rb');
+      const gemfilePath = join(projectPath, "Gemfile");
+      const applicationPath = join(projectPath, "config", "application.rb");
 
       const [hasGemfile, hasApplication] = await Promise.all([
         fs
@@ -62,8 +62,8 @@ export class RailsClient {
       // Try to detect Rails version from Gemfile.lock
       let railsVersion: string | undefined;
       try {
-        const gemfileLockPath = join(projectPath, 'Gemfile.lock');
-        const gemfileLock = await fs.readFile(gemfileLockPath, 'utf8');
+        const gemfileLockPath = join(projectPath, "Gemfile.lock");
+        const gemfileLock = await fs.readFile(gemfileLockPath, "utf8");
         const railsMatch = gemfileLock.match(
           /rails \((\d+\.\d+\.\d+(?:\.\w+)?)\)/
         );
@@ -75,14 +75,14 @@ export class RailsClient {
       }
 
       // Determine project type
-      let projectType: 'application' | 'engine' | 'gem' = 'gem';
+      let projectType: "application" | "engine" | "gem" = "gem";
       if (hasApplication) {
         // Check if it's an engine
-        const applicationContent = await fs.readFile(applicationPath, 'utf8');
-        if (applicationContent.includes('Rails::Engine')) {
-          projectType = 'engine';
+        const applicationContent = await fs.readFile(applicationPath, "utf8");
+        if (applicationContent.includes("Rails::Engine")) {
+          projectType = "engine";
         } else {
-          projectType = 'application';
+          projectType = "application";
         }
       }
 
@@ -92,7 +92,7 @@ export class RailsClient {
         projectType,
         rootPath: projectPath,
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         isRailsProject: false,
         rootPath: projectPath,
@@ -127,7 +127,7 @@ export class RailsClient {
 
     try {
       const output = await this.executeRailsCommand(
-        ['generate', '--help'],
+        ["generate", "--help"],
         projectPath
       );
 
@@ -151,7 +151,7 @@ export class RailsClient {
         data: [],
         success: false,
         error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
@@ -184,7 +184,7 @@ export class RailsClient {
 
     try {
       const output = await this.executeRailsCommand(
-        ['generate', generatorName, '--help'],
+        ["generate", generatorName, "--help"],
         projectPath
       );
 
@@ -208,7 +208,7 @@ export class RailsClient {
         data: {} as GeneratorHelp,
         success: false,
         error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
@@ -228,7 +228,7 @@ export class RailsClient {
       return {
         data: {
           success: false,
-          output: '',
+          output: "",
           error: `Not a Rails project: ${projectPath}. Cannot run generators outside of Rails projects.`,
           filesCreated: [],
           filesModified: [],
@@ -239,11 +239,11 @@ export class RailsClient {
     }
 
     try {
-      const command = ['generate', generatorName, ...args];
+      const command = ["generate", generatorName, ...args];
 
       // Add options to command
       for (const [key, value] of Object.entries(options)) {
-        if (typeof value === 'boolean') {
+        if (typeof value === "boolean") {
           if (value) {
             command.push(`--${key}`);
           } else {
@@ -251,7 +251,7 @@ export class RailsClient {
           }
         } else if (Array.isArray(value)) {
           command.push(`--${key}`);
-          command.push(value.join(','));
+          command.push(value.join(","));
         } else if (value !== undefined) {
           command.push(`--${key}`);
           command.push(String(value));
@@ -264,7 +264,7 @@ export class RailsClient {
         return {
           data: {
             success: false,
-            output: '',
+            output: "",
             error: output.error,
             filesCreated: [],
             filesModified: [],
@@ -281,15 +281,15 @@ export class RailsClient {
       return {
         data: {
           success: false,
-          output: '',
+          output: "",
           error:
-            error instanceof Error ? error.message : 'Unknown error occurred',
+            error instanceof Error ? error.message : "Unknown error occurred",
           filesCreated: [],
           filesModified: [],
         },
         success: false,
         error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
@@ -309,7 +309,7 @@ export class RailsClient {
       return {
         data: {
           success: false,
-          output: '',
+          output: "",
           error: `Not a Rails project: ${projectPath}. Cannot run destroy outside of Rails projects.`,
           filesRemoved: [],
           filesModified: [],
@@ -320,11 +320,11 @@ export class RailsClient {
     }
 
     try {
-      const command = ['destroy', generatorName, ...args];
+      const command = ["destroy", generatorName, ...args];
 
       // Add options to command
       for (const [key, value] of Object.entries(options)) {
-        if (typeof value === 'boolean') {
+        if (typeof value === "boolean") {
           if (value) {
             command.push(`--${key}`);
           } else {
@@ -332,7 +332,7 @@ export class RailsClient {
           }
         } else if (Array.isArray(value)) {
           command.push(`--${key}`);
-          command.push(value.join(','));
+          command.push(value.join(","));
         } else if (value !== undefined) {
           command.push(`--${key}`);
           command.push(String(value));
@@ -345,7 +345,7 @@ export class RailsClient {
         return {
           data: {
             success: false,
-            output: '',
+            output: "",
             error: output.error,
             filesRemoved: [],
             filesModified: [],
@@ -362,15 +362,15 @@ export class RailsClient {
       return {
         data: {
           success: false,
-          output: '',
+          output: "",
           error:
-            error instanceof Error ? error.message : 'Unknown error occurred',
+            error instanceof Error ? error.message : "Unknown error occurred",
           filesRemoved: [],
           filesModified: [],
         },
         success: false,
         error:
-          error instanceof Error ? error.message : 'Unknown error occurred',
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
@@ -383,33 +383,33 @@ export class RailsClient {
     cwd: string
   ): Promise<ApiResponse<string>> {
     return new Promise((resolve) => {
-      const child = spawn('rails', args, {
+      const child = spawn("rails", args, {
         cwd,
-        stdio: ['ignore', 'pipe', 'pipe'],
-        env: { ...process.env, RAILS_ENV: 'development' },
+        stdio: ["ignore", "pipe", "pipe"],
+        env: { ...process.env, RAILS_ENV: "development" },
       });
 
-      let stdout = '';
-      let stderr = '';
+      let stdout = "";
+      let stderr = "";
 
-      child.stdout?.on('data', (data) => {
+      child.stdout?.on("data", (data) => {
         stdout += data.toString();
       });
 
-      child.stderr?.on('data', (data) => {
+      child.stderr?.on("data", (data) => {
         stderr += data.toString();
       });
 
       const timer = setTimeout(() => {
-        child.kill('SIGTERM');
+        child.kill("SIGTERM");
         resolve({
-          data: '',
+          data: "",
           success: false,
           error: `Command timed out after ${this.timeout}ms`,
         });
       }, this.timeout);
 
-      child.on('close', (code) => {
+      child.on("close", (code) => {
         clearTimeout(timer);
 
         if (code === 0) {
@@ -421,17 +421,17 @@ export class RailsClient {
           const errorMessage =
             stderr || stdout || `Command failed with exit code ${code}`;
           resolve({
-            data: '',
+            data: "",
             success: false,
             error: errorMessage,
           });
         }
       });
 
-      child.on('error', (error) => {
+      child.on("error", (error) => {
         clearTimeout(timer);
         resolve({
-          data: '',
+          data: "",
           success: false,
           error: `Failed to execute rails command: ${error.message}`,
         });
@@ -444,7 +444,7 @@ export class RailsClient {
    */
   private parseGeneratorsList(output: string): RailsGenerator[] {
     const generators: RailsGenerator[] = [];
-    const lines = output.split('\n');
+    const lines = output.split("\n");
 
     let inGeneratorsList = false;
 
@@ -452,7 +452,7 @@ export class RailsClient {
       const trimmed = line.trim();
 
       // Look for the generators section
-      if (trimmed.includes('Please choose a generator below')) {
+      if (trimmed.includes("Please choose a generator below")) {
         inGeneratorsList = true;
         continue;
       }
@@ -462,8 +462,8 @@ export class RailsClient {
       // Skip empty lines and headers
       if (
         !trimmed ||
-        trimmed.startsWith('Rails:') ||
-        trimmed.startsWith('===')
+        trimmed.startsWith("Rails:") ||
+        trimmed.startsWith("===")
       ) {
         continue;
       }
@@ -475,7 +475,7 @@ export class RailsClient {
         generators.push({
           name,
           description: `Rails ${name} generator`,
-          namespace: name.includes(':') ? name.split(':')[0] : undefined,
+          namespace: name.includes(":") ? name.split(":")[0] : undefined,
         });
       }
     }
@@ -490,22 +490,22 @@ export class RailsClient {
     generatorName: string,
     output: string
   ): GeneratorHelp {
-    const lines = output.split('\n');
+    const lines = output.split("\n");
     const help: GeneratorHelp = {
       name: generatorName,
-      description: '',
-      usage: '',
+      description: "",
+      usage: "",
       options: [],
       arguments: [],
     };
 
-    let currentSection = '';
+    let currentSection = "";
 
     for (const line of lines) {
       const trimmed = line.trim();
 
       // Extract usage line
-      if (trimmed.startsWith('Usage:')) {
+      if (trimmed.startsWith("Usage:")) {
         help.usage = trimmed.substring(6).trim();
         continue;
       }
@@ -514,21 +514,21 @@ export class RailsClient {
       if (
         !help.description &&
         trimmed &&
-        !trimmed.startsWith('Usage:') &&
-        !trimmed.startsWith('Options:')
+        !trimmed.startsWith("Usage:") &&
+        !trimmed.startsWith("Options:")
       ) {
         help.description = trimmed;
         continue;
       }
 
       // Track sections
-      if (trimmed === 'Options:') {
-        currentSection = 'options';
+      if (trimmed === "Options:") {
+        currentSection = "options";
         continue;
       }
 
       // Parse options
-      if (currentSection === 'options' && trimmed.startsWith('-')) {
+      if (currentSection === "options" && trimmed.startsWith("-")) {
         const optionMatch = trimmed.match(
           /^(-\w,?\s*)?--(\w+)(?:=(\w+))?\s+(.+)$/
         );
@@ -537,8 +537,8 @@ export class RailsClient {
           help.options.push({
             name: optionName,
             description: description.trim(),
-            type: valueType ? 'string' : 'boolean',
-            aliases: shortFlag ? [shortFlag.replace(',', '').trim()] : [],
+            type: valueType ? "string" : "boolean",
+            aliases: shortFlag ? [shortFlag.replace(",", "").trim()] : [],
           });
         }
       }
@@ -551,21 +551,21 @@ export class RailsClient {
    * Parse the output of 'rails generate' command execution
    */
   private parseGenerateOutput(output: string): GenerateResult {
-    const lines = output.split('\n');
+    const lines = output.split("\n");
     const filesCreated: string[] = [];
     const filesModified: string[] = [];
 
     for (const line of lines) {
       const trimmed = line.trim();
 
-      if (trimmed.startsWith('create ')) {
+      if (trimmed.startsWith("create ")) {
         const filePath = trimmed.substring(7).trim();
         filesCreated.push(filePath);
       } else if (
-        trimmed.startsWith('insert ') ||
-        trimmed.startsWith('inject ')
+        trimmed.startsWith("insert ") ||
+        trimmed.startsWith("inject ")
       ) {
-        const filePath = trimmed.split(' ')[1]?.trim();
+        const filePath = trimmed.split(" ")[1]?.trim();
         if (filePath && !filesModified.includes(filePath)) {
           filesModified.push(filePath);
         }
@@ -584,18 +584,18 @@ export class RailsClient {
    * Parse the output of 'rails destroy' command execution
    */
   private parseDestroyOutput(output: string): DestroyResult {
-    const lines = output.split('\n');
+    const lines = output.split("\n");
     const filesRemoved: string[] = [];
     const filesModified: string[] = [];
 
     for (const line of lines) {
       const trimmed = line.trim();
 
-      if (trimmed.startsWith('remove ')) {
+      if (trimmed.startsWith("remove ")) {
         const filePath = trimmed.substring(7).trim();
         filesRemoved.push(filePath);
-      } else if (trimmed.startsWith('revoke ') || trimmed.startsWith('gsub ')) {
-        const filePath = trimmed.split(' ')[1]?.trim();
+      } else if (trimmed.startsWith("revoke ") || trimmed.startsWith("gsub ")) {
+        const filePath = trimmed.split(" ")[1]?.trim();
         if (filePath && !filesModified.includes(filePath)) {
           filesModified.push(filePath);
         }

@@ -2,7 +2,7 @@
  * Zod validation schemas for MCP tool inputs
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 // Schema for listing generators
 export const ListGeneratorsSchema = z.object({
@@ -13,8 +13,8 @@ export const ListGeneratorsSchema = z.object({
 export const GetGeneratorHelpSchema = z.object({
   generator_name: z
     .string()
-    .min(1, 'Generator name cannot be empty')
-    .max(100, 'Generator name too long'),
+    .min(1, "Generator name cannot be empty")
+    .max(100, "Generator name too long"),
   project: z.string().max(100).optional(),
 });
 
@@ -22,8 +22,8 @@ export const GetGeneratorHelpSchema = z.object({
 export const GenerateSchema = z.object({
   generator_name: z
     .string()
-    .min(1, 'Generator name cannot be empty')
-    .max(100, 'Generator name too long'),
+    .min(1, "Generator name cannot be empty")
+    .max(100, "Generator name too long"),
   arguments: z.array(z.string()).optional().default([]),
   options: z
     .record(z.string(), z.union([z.string(), z.boolean(), z.array(z.string())]))
@@ -36,8 +36,8 @@ export const GenerateSchema = z.object({
 export const DestroySchema = z.object({
   generator_name: z
     .string()
-    .min(1, 'Generator name cannot be empty')
-    .max(100, 'Generator name too long'),
+    .min(1, "Generator name cannot be empty")
+    .max(100, "Generator name too long"),
   arguments: z.array(z.string()).optional().default([]),
   options: z
     .record(z.string(), z.union([z.string(), z.boolean(), z.array(z.string())]))

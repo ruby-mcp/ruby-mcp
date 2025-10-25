@@ -2,8 +2,8 @@
  * Project manager for handling multiple project directories
  */
 
-import { promises as fs } from 'fs';
-import { resolve, join } from 'path';
+import { promises as fs } from "node:fs";
+import { join, resolve } from "node:path";
 
 export interface ProjectConfig {
   name: string;
@@ -18,8 +18,8 @@ export class ProjectManager {
     this.defaultProject = defaultPath || process.cwd();
 
     // Add default project if not explicitly provided
-    if (!projects.some((p) => p.name === 'default')) {
-      this.projects.set('default', this.defaultProject);
+    if (!projects.some((p) => p.name === "default")) {
+      this.projects.set("default", this.defaultProject);
     }
 
     // Add configured projects
@@ -45,9 +45,10 @@ export class ProjectManager {
       await fs.access(resolvedPath, fs.constants.R_OK);
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message.includes('ENOENT')) {
+        if (error.message.includes("ENOENT")) {
           throw new Error(`Project directory does not exist: ${resolvedPath}`);
-        } else if (error.message.includes('EACCES')) {
+        }
+        if (error.message.includes("EACCES")) {
           throw new Error(
             `Permission denied accessing project directory: ${resolvedPath}`
           );
@@ -70,7 +71,7 @@ export class ProjectManager {
     const path = this.projects.get(name);
     if (!path) {
       throw new Error(
-        `Project not found: ${name}. Available projects: ${Array.from(this.projects.keys()).join(', ')}`
+        `Project not found: ${name}. Available projects: ${Array.from(this.projects.keys()).join(", ")}`
       );
     }
 
@@ -130,9 +131,9 @@ export class ProjectManager {
         await fs.access(path, fs.constants.R_OK);
       } catch (error) {
         if (error instanceof Error) {
-          if (error.message.includes('ENOENT')) {
+          if (error.message.includes("ENOENT")) {
             errors.push(`Project '${name}' directory does not exist: ${path}`);
-          } else if (error.message.includes('EACCES')) {
+          } else if (error.message.includes("EACCES")) {
             errors.push(
               `Permission denied accessing project '${name}' directory: ${path}`
             );
@@ -146,7 +147,7 @@ export class ProjectManager {
     }
 
     if (errors.length > 0) {
-      throw new Error(`Project validation failed:\n${errors.join('\n')}`);
+      throw new Error(`Project validation failed:\n${errors.join("\n")}`);
     }
   }
 }

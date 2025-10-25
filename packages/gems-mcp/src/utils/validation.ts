@@ -2,7 +2,7 @@
  * Input validation utilities
  */
 
-import { ZodSchema, ZodError } from 'zod';
+import { ZodError, type ZodSchema } from "zod";
 
 export interface ValidationResult<T> {
   success: boolean;
@@ -24,7 +24,7 @@ export function validateInput<T>(
   } catch (error) {
     if (error instanceof ZodError) {
       const issues = error.issues.map((issue) => {
-        const path = issue.path.length > 0 ? issue.path.join('.') : 'root';
+        const path = issue.path.length > 0 ? issue.path.join(".") : "root";
         return `${path}: ${issue.message}`;
       });
 
@@ -38,13 +38,13 @@ export function validateInput<T>(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : 'Unknown validation error',
+        error instanceof Error ? error.message : "Unknown validation error",
     };
   }
 }
 
 export function isValidGemName(name: string): boolean {
-  if (!name || typeof name !== 'string') {
+  if (!name || typeof name !== "string") {
     return false;
   }
 
@@ -53,8 +53,8 @@ export function isValidGemName(name: string): boolean {
 }
 
 export function sanitizeSearchQuery(query: string): string {
-  if (!query || typeof query !== 'string') {
-    return '';
+  if (!query || typeof query !== "string") {
+    return "";
   }
 
   return query.trim().slice(0, 100);
@@ -62,11 +62,11 @@ export function sanitizeSearchQuery(query: string): string {
 
 export function validateLimit(
   limit: unknown,
-  defaultLimit: number = 10,
-  maxLimit: number = 100
+  defaultLimit = 10,
+  maxLimit = 100
 ): number {
   if (
-    typeof limit === 'number' &&
+    typeof limit === "number" &&
     Number.isInteger(limit) &&
     limit > 0 &&
     limit <= maxLimit
@@ -74,9 +74,9 @@ export function validateLimit(
     return limit;
   }
 
-  if (typeof limit === 'string') {
-    const parsed = parseInt(limit, 10);
-    if (!isNaN(parsed) && parsed > 0 && parsed <= maxLimit) {
+  if (typeof limit === "string") {
+    const parsed = Number.parseInt(limit, 10);
+    if (!Number.isNaN(parsed) && parsed > 0 && parsed <= maxLimit) {
       return parsed;
     }
   }
@@ -84,20 +84,17 @@ export function validateLimit(
   return defaultLimit;
 }
 
-export function validateBoolean(
-  value: unknown,
-  defaultValue: boolean = false
-): boolean {
-  if (typeof value === 'boolean') {
+export function validateBoolean(value: unknown, defaultValue = false): boolean {
+  if (typeof value === "boolean") {
     return value;
   }
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     const lower = value.toLowerCase();
-    if (lower === 'true' || lower === '1' || lower === 'yes') {
+    if (lower === "true" || lower === "1" || lower === "yes") {
       return true;
     }
-    if (lower === 'false' || lower === '0' || lower === 'no') {
+    if (lower === "false" || lower === "0" || lower === "no") {
       return false;
     }
   }

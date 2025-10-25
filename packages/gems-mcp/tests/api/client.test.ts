@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { RubyGemsClient } from '../../src/api/client';
-import { server } from '../setup.js';
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from "msw";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { RubyGemsClient } from "../../src/api/client";
+import { server } from "../setup.js";
 
-describe('RubyGemsClient', () => {
+describe("RubyGemsClient", () => {
   let client: RubyGemsClient;
 
   beforeEach(() => {
@@ -19,28 +19,28 @@ describe('RubyGemsClient', () => {
     client.clearCache();
   });
 
-  describe('searchGems', () => {
-    it('should search for gems and return successful results', async () => {
-      const result = await client.searchGems('rails');
+  describe("searchGems", () => {
+    it("should search for gems and return successful results", async () => {
+      const result = await client.searchGems("rails");
 
       expect(result.success).toBe(true);
       expect(result.data).toBeInstanceOf(Array);
       if (result.success) {
         expect(result.data.length).toBeGreaterThan(0);
-        expect(result.data[0]).toHaveProperty('name');
-        expect(result.data[0]).toHaveProperty('info');
+        expect(result.data[0]).toHaveProperty("name");
+        expect(result.data[0]).toHaveProperty("info");
       }
     });
 
-    it('should handle search with no results', async () => {
-      const result = await client.searchGems('nonexistent-gem-12345');
+    it("should handle search with no results", async () => {
+      const result = await client.searchGems("nonexistent-gem-12345");
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual([]);
     });
 
-    it('should limit search results when specified', async () => {
-      const result = await client.searchGems('rails', 2);
+    it("should limit search results when specified", async () => {
+      const result = await client.searchGems("rails", 2);
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -49,90 +49,90 @@ describe('RubyGemsClient', () => {
     });
   });
 
-  describe('getGemDetails', () => {
-    it('should get gem details for existing gem', async () => {
-      const result = await client.getGemDetails('rails');
+  describe("getGemDetails", () => {
+    it("should get gem details for existing gem", async () => {
+      const result = await client.getGemDetails("rails");
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toHaveProperty('name', 'rails');
-        expect(result.data).toHaveProperty('version');
-        expect(result.data).toHaveProperty('info');
-        expect(result.data).toHaveProperty('authors');
+        expect(result.data).toHaveProperty("name", "rails");
+        expect(result.data).toHaveProperty("version");
+        expect(result.data).toHaveProperty("info");
+        expect(result.data).toHaveProperty("authors");
       }
     });
 
-    it('should handle gem not found', async () => {
-      const result = await client.getGemDetails('nonexistent-gem-12345');
+    it("should handle gem not found", async () => {
+      const result = await client.getGemDetails("nonexistent-gem-12345");
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Resource not found');
+      expect(result.error).toBe("Resource not found");
     });
   });
 
-  describe('getGemVersions', () => {
-    it('should get gem versions for existing gem', async () => {
-      const result = await client.getGemVersions('rails');
+  describe("getGemVersions", () => {
+    it("should get gem versions for existing gem", async () => {
+      const result = await client.getGemVersions("rails");
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeInstanceOf(Array);
         expect(result.data.length).toBeGreaterThan(0);
-        expect(result.data[0]).toHaveProperty('number');
-        expect(result.data[0]).toHaveProperty('platform');
+        expect(result.data[0]).toHaveProperty("number");
+        expect(result.data[0]).toHaveProperty("platform");
       }
     });
 
-    it('should handle versions for nonexistent gem', async () => {
-      const result = await client.getGemVersions('nonexistent-gem-12345');
+    it("should handle versions for nonexistent gem", async () => {
+      const result = await client.getGemVersions("nonexistent-gem-12345");
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Resource not found');
+      expect(result.error).toBe("Resource not found");
     });
   });
 
-  describe('getLatestVersion', () => {
-    it('should get latest version for existing gem', async () => {
-      const result = await client.getLatestVersion('rails');
+  describe("getLatestVersion", () => {
+    it("should get latest version for existing gem", async () => {
+      const result = await client.getLatestVersion("rails");
 
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data).toHaveProperty('number');
-        expect(result.data).toHaveProperty('platform');
+        expect(result.data).toHaveProperty("number");
+        expect(result.data).toHaveProperty("platform");
       }
     });
 
-    it('should handle latest version for nonexistent gem', async () => {
-      const result = await client.getLatestVersion('nonexistent-gem-12345');
+    it("should handle latest version for nonexistent gem", async () => {
+      const result = await client.getLatestVersion("nonexistent-gem-12345");
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Resource not found');
+      expect(result.error).toBe("Resource not found");
     });
   });
 
-  describe('getReverseDependencies', () => {
-    it('should get reverse dependencies for existing gem', async () => {
-      const result = await client.getReverseDependencies('activesupport');
+  describe("getReverseDependencies", () => {
+    it("should get reverse dependencies for existing gem", async () => {
+      const result = await client.getReverseDependencies("activesupport");
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeInstanceOf(Array);
         expect(result.data.length).toBeGreaterThan(0);
-        expect(result.data[0]).toHaveProperty('name');
+        expect(result.data[0]).toHaveProperty("name");
       }
     });
 
-    it('should handle reverse dependencies for nonexistent gem', async () => {
+    it("should handle reverse dependencies for nonexistent gem", async () => {
       const result = await client.getReverseDependencies(
-        'nonexistent-gem-12345'
+        "nonexistent-gem-12345"
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Resource not found');
+      expect(result.error).toBe("Resource not found");
     });
   });
 
-  describe('caching', () => {
+  describe("caching", () => {
     beforeEach(() => {
       vi.useFakeTimers();
       // Create client with caching enabled for these tests
@@ -147,16 +147,16 @@ describe('RubyGemsClient', () => {
       vi.useRealTimers();
     });
 
-    it('should cache successful responses', async () => {
+    it("should cache successful responses", async () => {
       // First call
-      const result1 = await client.getGemDetails('rails');
+      const result1 = await client.getGemDetails("rails");
       expect(result1.success).toBe(true);
 
       const stats1 = client.getCacheStats();
       expect(stats1.size).toBe(1);
 
       // Second call should use cache
-      const result2 = await client.getGemDetails('rails');
+      const result2 = await client.getGemDetails("rails");
       expect(result2.success).toBe(true);
       expect(result2.data).toEqual(result1.data);
 
@@ -165,9 +165,9 @@ describe('RubyGemsClient', () => {
       expect(stats2.size).toBe(1);
     });
 
-    it('should expire cache after TTL', async () => {
+    it("should expire cache after TTL", async () => {
       // First call
-      const result1 = await client.getGemDetails('rails');
+      const result1 = await client.getGemDetails("rails");
       expect(result1.success).toBe(true);
 
       const stats1 = client.getCacheStats();
@@ -184,33 +184,33 @@ describe('RubyGemsClient', () => {
       expect(stats2.size).toBe(0);
     });
 
-    it('should not cache failed responses', async () => {
+    it("should not cache failed responses", async () => {
       // First call should fail
-      const result1 = await client.getGemDetails('nonexistent-gem-12345');
+      const result1 = await client.getGemDetails("nonexistent-gem-12345");
       expect(result1.success).toBe(false);
 
       const stats1 = client.getCacheStats();
       expect(stats1.size).toBe(0); // Failed responses not cached
 
       // Second call should try again (not cached)
-      const result2 = await client.getGemDetails('nonexistent-gem-12345');
+      const result2 = await client.getGemDetails("nonexistent-gem-12345");
       expect(result2.success).toBe(false);
 
       const stats2 = client.getCacheStats();
       expect(stats2.size).toBe(0);
     });
 
-    it('should cache different endpoints separately', async () => {
-      await client.getGemDetails('rails');
-      await client.getGemVersions('rails');
+    it("should cache different endpoints separately", async () => {
+      await client.getGemDetails("rails");
+      await client.getGemVersions("rails");
 
       const stats = client.getCacheStats();
       expect(stats.size).toBe(2);
       expect(stats.keys).toHaveLength(2);
     });
 
-    it('should clear cache when requested', async () => {
-      await client.getGemDetails('rails');
+    it("should clear cache when requested", async () => {
+      await client.getGemDetails("rails");
 
       const stats1 = client.getCacheStats();
       expect(stats1.size).toBe(1);
@@ -222,12 +222,12 @@ describe('RubyGemsClient', () => {
     });
   });
 
-  describe('configuration', () => {
-    it('should use custom configuration', () => {
+  describe("configuration", () => {
+    it("should use custom configuration", () => {
       const customClient = new RubyGemsClient({
-        baseUrl: 'https://custom.rubygems.org',
+        baseUrl: "https://custom.rubygems.org",
         timeout: 5000,
-        userAgent: 'Custom-Agent/1.0.0',
+        userAgent: "Custom-Agent/1.0.0",
         cacheEnabled: false,
         rateLimitDelay: 200,
       });
@@ -235,28 +235,28 @@ describe('RubyGemsClient', () => {
       expect(customClient).toBeInstanceOf(RubyGemsClient);
     });
 
-    it('should use default configuration when not specified', () => {
+    it("should use default configuration when not specified", () => {
       const defaultClient = new RubyGemsClient();
       expect(defaultClient).toBeInstanceOf(RubyGemsClient);
     });
   });
 
-  describe('error handling', () => {
-    it('should handle network errors gracefully', async () => {
+  describe("error handling", () => {
+    it("should handle network errors gracefully", async () => {
       // Create client with invalid base URL
       const badClient = new RubyGemsClient({
-        baseUrl: 'https://invalid-host-12345.example',
+        baseUrl: "https://invalid-host-12345.example",
         cacheEnabled: false,
         rateLimitDelay: 0,
         timeout: 1000,
       });
 
-      const result = await badClient.searchGems('rails');
+      const result = await badClient.searchGems("rails");
       expect(result.success).toBe(false);
       expect(result.error).toMatch(/aborted|fetch failed|network|Network/);
     });
 
-    it('should handle fetch errors properly', async () => {
+    it("should handle fetch errors properly", async () => {
       // This tests the error handling structure without relying on actual network failures
       const client = new RubyGemsClient({
         cacheEnabled: false,
@@ -264,14 +264,14 @@ describe('RubyGemsClient', () => {
       });
 
       // Test with a gem name that will return 404
-      const result = await client.getGemDetails('nonexistent-gem-12345');
+      const result = await client.getGemDetails("nonexistent-gem-12345");
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Resource not found');
+      expect(result.error).toBe("Resource not found");
     });
   });
 
-  describe('rate limiting', () => {
-    it('should respect rate limiting configuration', async () => {
+  describe("rate limiting", () => {
+    it("should respect rate limiting configuration", async () => {
       const rateLimitClient = new RubyGemsClient({
         cacheEnabled: false,
         rateLimitDelay: 100, // 100ms delay
@@ -280,8 +280,8 @@ describe('RubyGemsClient', () => {
       const start = Date.now();
 
       // Make two requests
-      await rateLimitClient.searchGems('rails');
-      await rateLimitClient.searchGems('test');
+      await rateLimitClient.searchGems("rails");
+      await rateLimitClient.searchGems("test");
 
       const duration = Date.now() - start;
 
@@ -289,15 +289,15 @@ describe('RubyGemsClient', () => {
       expect(duration).toBeGreaterThanOrEqual(100);
     });
 
-    it('should handle rate limit errors', async () => {
+    it("should handle rate limit errors", async () => {
       // Create a handler that returns 429 for rate limiting
       server.use(
-        http.get('https://rubygems.org/api/v1/search.json', () => {
+        http.get("https://rubygems.org/api/v1/search.json", () => {
           return new HttpResponse(
-            JSON.stringify({ error: 'Rate limit exceeded' }),
+            JSON.stringify({ error: "Rate limit exceeded" }),
             {
               status: 429,
-              headers: { 'Content-Type': 'application/json' },
+              headers: { "Content-Type": "application/json" },
             }
           );
         })
@@ -308,24 +308,24 @@ describe('RubyGemsClient', () => {
         rateLimitDelay: 0,
       });
 
-      const result = await client.searchGems('test');
+      const result = await client.searchGems("test");
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Rate limit exceeded');
+      expect(result.error).toBe("Rate limit exceeded");
     });
   });
 
-  describe('getReverseDependencies error handling', () => {
-    it('should handle getReverseDependencies API errors', async () => {
+  describe("getReverseDependencies error handling", () => {
+    it("should handle getReverseDependencies API errors", async () => {
       // Create a handler that returns a 500 error
       server.use(
         http.get(
-          'https://rubygems.org/api/v1/gems/*/reverse_dependencies.json',
+          "https://rubygems.org/api/v1/gems/*/reverse_dependencies.json",
           () => {
             return new HttpResponse(
-              JSON.stringify({ error: 'Internal server error' }),
+              JSON.stringify({ error: "Internal server error" }),
               {
                 status: 500,
-                headers: { 'Content-Type': 'application/json' },
+                headers: { "Content-Type": "application/json" },
               }
             );
           }
@@ -337,21 +337,21 @@ describe('RubyGemsClient', () => {
         rateLimitDelay: 0,
       });
 
-      const result = await client.getReverseDependencies('test-gem');
+      const result = await client.getReverseDependencies("test-gem");
       expect(result.success).toBe(false);
-      expect(result.error).toBe('HTTP 500');
+      expect(result.error).toBe("HTTP 500");
       expect(result.data).toBe(null);
     });
 
-    it('should handle getReverseDependencies network errors', async () => {
+    it("should handle getReverseDependencies network errors", async () => {
       // Create a handler that returns a 502 error (bad gateway)
       server.use(
         http.get(
-          'https://rubygems.org/api/v1/gems/*/reverse_dependencies.json',
+          "https://rubygems.org/api/v1/gems/*/reverse_dependencies.json",
           () => {
             return new HttpResponse(null, {
               status: 502,
-              statusText: 'Bad Gateway',
+              statusText: "Bad Gateway",
             });
           }
         )
@@ -362,13 +362,13 @@ describe('RubyGemsClient', () => {
         rateLimitDelay: 0,
       });
 
-      const result = await client.getReverseDependencies('test-gem');
+      const result = await client.getReverseDependencies("test-gem");
       expect(result.success).toBe(false);
-      expect(result.error).toBe('HTTP 502');
+      expect(result.error).toBe("HTTP 502");
       expect(result.data).toBe(null);
     });
 
-    it('should handle non-Error exceptions in getReverseDependencies', async () => {
+    it("should handle non-Error exceptions in getReverseDependencies", async () => {
       const badClient = new RubyGemsClient({
         cacheEnabled: false,
         rateLimitDelay: 0,
@@ -378,14 +378,14 @@ describe('RubyGemsClient', () => {
       type MakeRequestMethod = (url: string) => Promise<unknown>;
       vi.spyOn(
         badClient as unknown as { makeRequest: MakeRequestMethod },
-        'makeRequest'
+        "makeRequest"
       ).mockImplementation(() => {
-        throw 'string error in getReverseDependencies';
+        throw "string error in getReverseDependencies";
       });
 
-      const result = await badClient.getReverseDependencies('test-gem');
+      const result = await badClient.getReverseDependencies("test-gem");
       expect(result.success).toBe(false);
-      expect(result.error).toBe('Unknown error occurred');
+      expect(result.error).toBe("Unknown error occurred");
       expect(result.data).toEqual([]);
     });
   });

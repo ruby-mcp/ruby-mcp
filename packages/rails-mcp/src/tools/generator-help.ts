@@ -2,22 +2,22 @@
  * MCP tool for getting help for a specific Rails generator
  */
 
-import { validateInput } from '../utils/validation.js';
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { RailsClient } from "../api/rails-client.js";
+import type { ProjectManager } from "../project-manager.js";
 import {
-  createStructuredResult,
-  createStructuredError,
-  createExecutionContext,
-  generateHumanReadableSummary,
-  formatGeneratorHelp,
-} from '../utils/structured-output.js';
-import {
-  GetGeneratorHelpSchema,
   type GetGeneratorHelpInput,
-} from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { ProjectManager } from '../project-manager.js';
-import type { RailsClient } from '../api/rails-client.js';
-import type { GeneratorHelpOutput } from '../types.js';
+  GetGeneratorHelpSchema,
+} from "../schemas.js";
+import type { GeneratorHelpOutput } from "../types.js";
+import {
+  createExecutionContext,
+  createStructuredError,
+  createStructuredResult,
+  formatGeneratorHelp,
+  generateHumanReadableSummary,
+} from "../utils/structured-output.js";
+import { validateInput } from "../utils/validation.js";
 
 export interface GeneratorHelpToolOptions {
   client: RailsClient;
@@ -38,8 +38,8 @@ export class GeneratorHelpTool {
     const validation = validateInput(GetGeneratorHelpSchema, args);
     if (!validation.success) {
       return createStructuredError(
-        'get_generator_help',
-        'validation_error',
+        "get_generator_help",
+        "validation_error",
         validation.error
       );
     }
@@ -55,9 +55,9 @@ export class GeneratorHelpTool {
         : process.cwd();
     } catch (error) {
       return createStructuredError(
-        'get_generator_help',
-        'project_resolution_error',
-        error instanceof Error ? error.message : 'Unknown error',
+        "get_generator_help",
+        "project_resolution_error",
+        error instanceof Error ? error.message : "Unknown error",
         { project }
       );
     }
@@ -68,8 +68,8 @@ export class GeneratorHelpTool {
 
       if (!projectInfo.isRailsProject) {
         return createStructuredError(
-          'get_generator_help',
-          'not_rails_project',
+          "get_generator_help",
+          "not_rails_project",
           `Directory ${workingDirectory} does not contain a Rails application`,
           createExecutionContext(projectInfo, project)
         );
@@ -83,8 +83,8 @@ export class GeneratorHelpTool {
 
       if (!response.success) {
         return createStructuredError(
-          'get_generator_help',
-          'generator_help_error',
+          "get_generator_help",
+          "generator_help_error",
           `Failed to get help for generator '${generator_name}': ${response.error}`,
           createExecutionContext(projectInfo, project)
         );
@@ -95,7 +95,7 @@ export class GeneratorHelpTool {
       // Create structured output
       const output: GeneratorHelpOutput = {
         success: true,
-        action: 'get_generator_help',
+        action: "get_generator_help",
         summary: `Successfully retrieved help for '${generator_name}' generator`,
         context: createExecutionContext(projectInfo, project),
         data: {
@@ -116,16 +116,16 @@ export class GeneratorHelpTool {
 
       // Generate human-readable text
       let humanText = generateHumanReadableSummary(output);
-      humanText += '\n' + formatGeneratorHelp(help);
+      humanText += `\n${formatGeneratorHelp(help)}`;
       humanText +=
-        '\n💡 **Tip:** Use the `generate` tool to execute this generator with the specified arguments and options.';
+        "\n💡 **Tip:** Use the `generate` tool to execute this generator with the specified arguments and options.";
 
       return createStructuredResult(output, humanText);
     } catch (error) {
       return createStructuredError(
-        'get_generator_help',
-        'unexpected_error',
-        error instanceof Error ? error.message : 'Unknown error occurred',
+        "get_generator_help",
+        "unexpected_error",
+        error instanceof Error ? error.message : "Unknown error occurred",
         { workingDirectory, project }
       );
     }

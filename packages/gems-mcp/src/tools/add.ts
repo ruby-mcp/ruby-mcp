@@ -2,22 +2,22 @@
  * MCP tool for adding gems to Gemfiles and gemspec files
  */
 
-import { promises as fs } from 'fs';
-import { validateInput } from '../utils/validation.js';
+import { promises as fs } from "node:fs";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { ProjectManager } from "../project-manager.js";
 import {
-  GemAddToGemfileSchema,
-  GemAddToGemspecSchema,
   type GemAddToGemfileInput,
+  GemAddToGemfileSchema,
   type GemAddToGemspecInput,
-} from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { ProjectManager } from '../project-manager.js';
+  GemAddToGemspecSchema,
+} from "../schemas.js";
 import {
   type QuoteConfig,
-  formatGemDeclaration,
-  formatDependencyDeclaration,
   type QuoteStyle,
-} from '../utils/quotes.js';
+  formatDependencyDeclaration,
+  formatGemDeclaration,
+} from "../utils/quotes.js";
+import { validateInput } from "../utils/validation.js";
 
 export class GemAddTool {
   private projectManager?: ProjectManager;
@@ -37,7 +37,7 @@ export class GemAddTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -67,8 +67,8 @@ export class GemAddTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -83,7 +83,7 @@ export class GemAddTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Error: ${resolvedFilePath} is not a file`,
             },
           ],
@@ -91,20 +91,20 @@ export class GemAddTool {
         };
       }
 
-      const content = await fs.readFile(resolvedFilePath, 'utf-8');
-      const lines = content.split('\n');
+      const content = await fs.readFile(resolvedFilePath, "utf-8");
+      const lines = content.split("\n");
 
       // Check if gem already exists
       for (const line of lines) {
         const trimmedLine = line.trim();
-        if (trimmedLine.startsWith('#') || !trimmedLine) continue;
+        if (trimmedLine.startsWith("#") || !trimmedLine) continue;
 
         const gemMatch = line.match(/gem\s+['"]([^'"]+)['"]/);
         if (gemMatch && gemMatch[1] === gem_name) {
           return {
             content: [
               {
-                type: 'text',
+                type: "text",
                 text: `Gem '${gem_name}' already exists in ${resolvedFilePath}`,
               },
             ],
@@ -115,7 +115,7 @@ export class GemAddTool {
 
       // Determine quote style to use
       const effectiveQuoteStyle: QuoteStyle =
-        quote_style || this.quoteConfig?.gemfile || 'single';
+        quote_style || this.quoteConfig?.gemfile || "single";
 
       // Build the gem declaration using utility function
       const gemDeclaration = formatGemDeclaration(gem_name, {
@@ -129,19 +129,19 @@ export class GemAddTool {
       // Determine where to add the gem
       if (group && group.length > 0) {
         // Find or create group block
-        const groupNames = group.join(', :');
+        const groupNames = group.join(", :");
         const groupPattern = new RegExp(
-          `^\\s*group\\s+:${groupNames.replace(', :', ',\\s*:')}\\s+do\\s*$`
+          `^\\s*group\\s+:${groupNames.replace(", :", ",\\s*:")}\\s+do\\s*$`
         );
 
         let groupStartIndex = -1;
         let groupEndIndex = -1;
-        let indentLevel = '';
+        let indentLevel = "";
 
         for (let i = 0; i < lines.length; i++) {
           if (groupPattern.test(lines[i])) {
             groupStartIndex = i;
-            indentLevel = lines[i].match(/^(\s*)/)?.[1] || '';
+            indentLevel = lines[i].match(/^(\s*)/)?.[1] || "";
 
             // Find the matching 'end'
             let blockLevel = 1;
@@ -166,55 +166,56 @@ export class GemAddTool {
         } else {
           // Create new group at end of file
           const newGroup = [
-            '',
+            "",
             `group :${groupNames} do`,
             `  ${gemDeclaration}`,
-            'end',
+            "end",
           ];
           lines.push(...newGroup);
         }
       } else {
         // Add to the end of the file (before any trailing blank lines)
         let insertIndex = lines.length;
-        while (insertIndex > 0 && lines[insertIndex - 1].trim() === '') {
+        while (insertIndex > 0 && lines[insertIndex - 1].trim() === "") {
           insertIndex--;
         }
         lines.splice(insertIndex, 0, gemDeclaration);
       }
 
-      await fs.writeFile(resolvedFilePath, lines.join('\n'), 'utf-8');
+      await fs.writeFile(resolvedFilePath, lines.join("\n"), "utf-8");
 
       const groupInfo =
-        group && group.length > 0 ? ` in group [:${group.join(', :')}]` : '';
+        group && group.length > 0 ? ` in group [:${group.join(", :")}]` : "";
       const versionInfo = version
         ? ` with version '${pin_type} ${version}'`
-        : '';
+        : "";
 
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Successfully added '${gem_name}'${versionInfo}${groupInfo} to ${resolvedFilePath}`,
           },
         ],
       };
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message.includes('ENOENT')) {
+        if (error.message.includes("ENOENT")) {
           return {
             content: [
               {
-                type: 'text',
+                type: "text",
                 text: `Error: File not found: ${resolvedFilePath}`,
               },
             ],
             isError: true,
           };
-        } else if (error.message.includes('EACCES')) {
+        }
+        if (error.message.includes("EACCES")) {
           return {
             content: [
               {
-                type: 'text',
+                type: "text",
                 text: `Error: Permission denied accessing file: ${resolvedFilePath}`,
               },
             ],
@@ -226,8 +227,8 @@ export class GemAddTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error adding gem: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error adding gem: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -241,7 +242,7 @@ export class GemAddTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -269,8 +270,8 @@ export class GemAddTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -285,7 +286,7 @@ export class GemAddTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Error: ${resolvedFilePath} is not a file`,
             },
           ],
@@ -293,8 +294,8 @@ export class GemAddTool {
         };
       }
 
-      const content = await fs.readFile(resolvedFilePath, 'utf-8');
-      const lines = content.split('\n');
+      const content = await fs.readFile(resolvedFilePath, "utf-8");
+      const lines = content.split("\n");
 
       // Check if dependency already exists
       const dependencyPattern = new RegExp(
@@ -306,7 +307,7 @@ export class GemAddTool {
           return {
             content: [
               {
-                type: 'text',
+                type: "text",
                 text: `Dependency '${gem_name}' already exists in ${resolvedFilePath}`,
               },
             ],
@@ -317,7 +318,7 @@ export class GemAddTool {
 
       // Determine quote style to use
       const effectiveQuoteStyle: QuoteStyle =
-        quote_style || this.quoteConfig?.gemspec || 'double';
+        quote_style || this.quoteConfig?.gemspec || "double";
 
       // Build the dependency declaration using utility function
       const dependencyDeclaration = formatDependencyDeclaration(gem_name, {
@@ -360,15 +361,15 @@ export class GemAddTool {
         // Add before the end of the spec block
         insertIndex = specBlockEndIndex;
         // Add a blank line before if needed
-        if (lines[specBlockEndIndex - 1].trim() !== '') {
-          lines.splice(insertIndex, 0, '');
+        if (lines[specBlockEndIndex - 1].trim() !== "") {
+          lines.splice(insertIndex, 0, "");
           insertIndex++;
         }
       } else {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Error: Could not find Gem::Specification block in ${resolvedFilePath}`,
             },
           ],
@@ -378,38 +379,39 @@ export class GemAddTool {
 
       lines.splice(insertIndex, 0, dependencyDeclaration);
 
-      await fs.writeFile(resolvedFilePath, lines.join('\n'), 'utf-8');
+      await fs.writeFile(resolvedFilePath, lines.join("\n"), "utf-8");
 
-      const typeInfo = dependency_type === 'development' ? 'development ' : '';
+      const typeInfo = dependency_type === "development" ? "development " : "";
       const versionInfo = version
         ? ` with version '${pin_type} ${version}'`
-        : '';
+        : "";
 
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Successfully added '${gem_name}' as ${typeInfo}dependency${versionInfo} to ${resolvedFilePath}`,
           },
         ],
       };
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message.includes('ENOENT')) {
+        if (error.message.includes("ENOENT")) {
           return {
             content: [
               {
-                type: 'text',
+                type: "text",
                 text: `Error: File not found: ${resolvedFilePath}`,
               },
             ],
             isError: true,
           };
-        } else if (error.message.includes('EACCES')) {
+        }
+        if (error.message.includes("EACCES")) {
           return {
             content: [
               {
-                type: 'text',
+                type: "text",
                 text: `Error: Permission denied accessing file: ${resolvedFilePath}`,
               },
             ],
@@ -421,8 +423,8 @@ export class GemAddTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error adding dependency: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error adding dependency: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,

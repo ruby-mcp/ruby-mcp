@@ -1,19 +1,26 @@
 /**
- * Response caching mechanism for RubyGems API calls
+ * Caching mechanism for changelog content
+ *
+ * Uses a longer TTL than API cache since changelogs don't change frequently
  */
 
 import type { CacheEntry } from "../types.js";
 
-export class ApiCache {
-  private cache = new Map<string, CacheEntry<unknown>>();
+export interface ChangelogCacheEntry {
+  content: string;
+  source: string;
+}
+
+export class ChangelogCache {
+  private cache = new Map<string, CacheEntry<ChangelogCacheEntry>>();
   private defaultTtl: number;
 
-  constructor(defaultTtl: number = 5 * 60 * 1000) {
-    // 5 minutes default
+  constructor(defaultTtl: number = 24 * 60 * 60 * 1000) {
+    // 24 hours default
     this.defaultTtl = defaultTtl;
   }
 
-  get<T>(key: string): T | null {
+  get(key: string): ChangelogCacheEntry | null {
     const entry = this.cache.get(key);
 
     if (!entry) {
@@ -26,11 +33,11 @@ export class ApiCache {
       return null;
     }
 
-    return entry.data as T;
+    return entry.data as ChangelogCacheEntry;
   }
 
-  set<T>(key: string, data: T, ttl?: number): void {
-    const entry: CacheEntry<T> = {
+  set(key: string, data: ChangelogCacheEntry, ttl?: number): void {
+    const entry: CacheEntry<ChangelogCacheEntry> = {
       data,
       timestamp: Date.now(),
       ttl: ttl ?? this.defaultTtl,
@@ -72,21 +79,7 @@ export class ApiCache {
     };
   }
 
-  static generateKey(
-    endpoint: string,
-    params?: Record<string, unknown>
-  ): string {
-    const baseKey = endpoint.toLowerCase();
-
-    if (!params || Object.keys(params).length === 0) {
-      return baseKey;
-    }
-
-    const sortedParams = Object.keys(params)
-      .sort()
-      .map((key) => `${key}=${encodeURIComponent(String(params[key]))}`)
-      .join("&");
-
-    return `${baseKey}?${sortedParams}`;
+  static generateKey(gemName: string, version?: string): string {
+    return version ? `${gemName}@${version}` : gemName;
   }
 }

@@ -1,27 +1,27 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { promises as fs } from 'fs';
-import { join } from 'path';
-import { tmpdir } from 'os';
-import { BundleInstallTool } from '../../src/tools/bundle-install.js';
-import { ProjectManager } from '../../src/project-manager.js';
-import { spawn, ChildProcess } from 'child_process';
+import { type ChildProcess, spawn } from "node:child_process";
+import { promises as fs } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ProjectManager } from "../../src/project-manager.js";
+import { BundleInstallTool } from "../../src/tools/bundle-install.js";
 
 // Mock the spawn function
-vi.mock('child_process', () => ({
+vi.mock("child_process", () => ({
   spawn: vi.fn(),
 }));
 
 const mockSpawn = vi.mocked(spawn);
 
-describe('BundleInstallTool', () => {
+describe("BundleInstallTool", () => {
   let tempDir: string;
   let tool: BundleInstallTool;
   let projectManager: ProjectManager;
 
   beforeEach(async () => {
     // Create a temporary directory for test files
-    tempDir = await fs.mkdtemp(join(tmpdir(), 'bundle-install-test-'));
-    projectManager = new ProjectManager([{ name: 'test', path: tempDir }]);
+    tempDir = await fs.mkdtemp(join(tmpdir(), "bundle-install-test-"));
+    projectManager = new ProjectManager([{ name: "test", path: tempDir }]);
     tool = new BundleInstallTool({ projectManager });
 
     // Reset mock
@@ -34,8 +34,8 @@ describe('BundleInstallTool', () => {
     vi.clearAllMocks();
   });
 
-  describe('input validation', () => {
-    it('should accept empty input (all options are optional)', async () => {
+  describe("input validation", () => {
+    it("should accept empty input (all options are optional)", async () => {
       // Mock successful bundle install
       mockSuccessfulBundleProcess();
 
@@ -43,97 +43,97 @@ describe('BundleInstallTool', () => {
 
       expect(result.isError).toBeUndefined();
       expect(mockSpawn).toHaveBeenCalledWith(
-        'bundle',
-        ['install'],
+        "bundle",
+        ["install"],
         expect.objectContaining({
           cwd: expect.any(String),
-          stdio: ['pipe', 'pipe', 'pipe'],
+          stdio: ["pipe", "pipe", "pipe"],
           env: expect.any(Object),
         })
       );
     });
 
-    it('should validate project name length', async () => {
-      const longProjectName = 'a'.repeat(101);
+    it("should validate project name length", async () => {
+      const longProjectName = "a".repeat(101);
 
       const result = await tool.execute({
         project: longProjectName,
       });
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Error:');
+      expect(result.content[0].text).toContain("Error:");
     });
 
-    it('should validate without array string lengths', async () => {
+    it("should validate without array string lengths", async () => {
       const result = await tool.execute({
-        without: ['a'.repeat(51)],
+        without: ["a".repeat(51)],
       });
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Error:');
+      expect(result.content[0].text).toContain("Error:");
     });
 
-    it('should validate gemfile path length', async () => {
-      const longPath = 'a'.repeat(501);
+    it("should validate gemfile path length", async () => {
+      const longPath = "a".repeat(501);
 
       const result = await tool.execute({
         gemfile: longPath,
       });
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Error:');
+      expect(result.content[0].text).toContain("Error:");
     });
   });
 
-  describe('project resolution', () => {
-    it('should use default project when no project specified', async () => {
+  describe("project resolution", () => {
+    it("should use default project when no project specified", async () => {
       mockSuccessfulBundleProcess();
 
       const result = await tool.execute({});
 
       expect(result.isError).toBeUndefined();
       expect(mockSpawn).toHaveBeenCalledWith(
-        'bundle',
-        ['install'],
+        "bundle",
+        ["install"],
         expect.objectContaining({
           cwd: expect.any(String), // Should use the project manager's default path
-          stdio: ['pipe', 'pipe', 'pipe'],
+          stdio: ["pipe", "pipe", "pipe"],
           env: expect.any(Object),
         })
       );
     });
 
-    it('should resolve project path using project manager', async () => {
+    it("should resolve project path using project manager", async () => {
       mockSuccessfulBundleProcess();
 
       const result = await tool.execute({
-        project: 'test',
+        project: "test",
       });
 
       expect(result.isError).toBeUndefined();
       expect(mockSpawn).toHaveBeenCalledWith(
-        'bundle',
-        ['install'],
+        "bundle",
+        ["install"],
         expect.objectContaining({
           cwd: tempDir,
         })
       );
     });
 
-    it('should handle non-existent project', async () => {
+    it("should handle non-existent project", async () => {
       const result = await tool.execute({
-        project: 'nonexistent',
+        project: "nonexistent",
       });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain(
-        'Project not found: nonexistent'
+        "Project not found: nonexistent"
       );
     });
   });
 
-  describe('bundle command options', () => {
-    it('should add deployment flag when deployment is true', async () => {
+  describe("bundle command options", () => {
+    it("should add deployment flag when deployment is true", async () => {
       mockSuccessfulBundleProcess();
 
       await tool.execute({
@@ -141,41 +141,41 @@ describe('BundleInstallTool', () => {
       });
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'bundle',
-        ['install', '--deployment'],
+        "bundle",
+        ["install", "--deployment"],
         expect.any(Object)
       );
     });
 
-    it('should add without groups', async () => {
+    it("should add without groups", async () => {
       mockSuccessfulBundleProcess();
 
       await tool.execute({
-        without: ['development', 'test'],
+        without: ["development", "test"],
       });
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'bundle',
-        ['install', '--without', 'development,test'],
+        "bundle",
+        ["install", "--without", "development,test"],
         expect.any(Object)
       );
     });
 
-    it('should add gemfile path', async () => {
+    it("should add gemfile path", async () => {
       mockSuccessfulBundleProcess();
 
       await tool.execute({
-        gemfile: 'custom/Gemfile',
+        gemfile: "custom/Gemfile",
       });
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'bundle',
-        ['install', '--gemfile', 'custom/Gemfile'],
+        "bundle",
+        ["install", "--gemfile", "custom/Gemfile"],
         expect.any(Object)
       );
     });
 
-    it('should add clean flag when clean is true', async () => {
+    it("should add clean flag when clean is true", async () => {
       mockSuccessfulBundleProcess();
 
       await tool.execute({
@@ -183,13 +183,13 @@ describe('BundleInstallTool', () => {
       });
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'bundle',
-        ['install', '--clean'],
+        "bundle",
+        ["install", "--clean"],
         expect.any(Object)
       );
     });
 
-    it('should add frozen flag when frozen is true', async () => {
+    it("should add frozen flag when frozen is true", async () => {
       mockSuccessfulBundleProcess();
 
       await tool.execute({
@@ -197,13 +197,13 @@ describe('BundleInstallTool', () => {
       });
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'bundle',
-        ['install', '--frozen'],
+        "bundle",
+        ["install", "--frozen"],
         expect.any(Object)
       );
     });
 
-    it('should add quiet flag when quiet is true', async () => {
+    it("should add quiet flag when quiet is true", async () => {
       mockSuccessfulBundleProcess();
 
       await tool.execute({
@@ -211,140 +211,140 @@ describe('BundleInstallTool', () => {
       });
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'bundle',
-        ['install', '--quiet'],
+        "bundle",
+        ["install", "--quiet"],
         expect.any(Object)
       );
     });
 
-    it('should combine multiple options', async () => {
+    it("should combine multiple options", async () => {
       mockSuccessfulBundleProcess();
 
       await tool.execute({
         deployment: true,
-        without: ['development'],
+        without: ["development"],
         clean: true,
         frozen: true,
         quiet: true,
       });
 
       expect(mockSpawn).toHaveBeenCalledWith(
-        'bundle',
+        "bundle",
         [
-          'install',
-          '--deployment',
-          '--without',
-          'development',
-          '--clean',
-          '--frozen',
-          '--quiet',
+          "install",
+          "--deployment",
+          "--without",
+          "development",
+          "--clean",
+          "--frozen",
+          "--quiet",
         ],
         expect.any(Object)
       );
     });
   });
 
-  describe('bundle execution', () => {
-    it('should handle successful bundle install', async () => {
+  describe("bundle execution", () => {
+    it("should handle successful bundle install", async () => {
       mockSuccessfulBundleProcess(
-        'Bundle complete! 42 Gemfile dependencies installed.'
+        "Bundle complete! 42 Gemfile dependencies installed."
       );
 
       const result = await tool.execute({});
 
       expect(result.isError).toBeUndefined();
       expect(result.content[0].text).toContain(
-        'Successfully ran bundle install'
+        "Successfully ran bundle install"
       );
       expect(result.content[0].text).toContain(
-        'Bundle complete! 42 Gemfile dependencies installed.'
+        "Bundle complete! 42 Gemfile dependencies installed."
       );
     });
 
-    it('should handle bundle install failure', async () => {
+    it("should handle bundle install failure", async () => {
       mockFailedBundleProcess('Could not find gem "missing-gem"', 1);
 
       const result = await tool.execute({});
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Bundle install failed');
+      expect(result.content[0].text).toContain("Bundle install failed");
       expect(result.content[0].text).toContain(
         'Could not find gem "missing-gem"'
       );
     });
 
-    it('should handle bundle command not found', async () => {
-      mockBundleProcessError(new Error('command not found: bundle'));
+    it("should handle bundle command not found", async () => {
+      mockBundleProcessError(new Error("command not found: bundle"));
 
       const result = await tool.execute({});
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain(
-        'Failed to start bundle command'
+        "Failed to start bundle command"
       );
     });
 
-    it('should include project name in success message', async () => {
+    it("should include project name in success message", async () => {
       mockSuccessfulBundleProcess();
 
       const result = await tool.execute({
-        project: 'test',
+        project: "test",
       });
 
       expect(result.isError).toBeUndefined();
       expect(result.content[0].text).toContain("in project 'test'");
     });
 
-    it('should include options in success message', async () => {
+    it("should include options in success message", async () => {
       mockSuccessfulBundleProcess();
 
       const result = await tool.execute({
         deployment: true,
-        without: ['development', 'test'],
+        without: ["development", "test"],
         clean: true,
       });
 
       expect(result.isError).toBeUndefined();
       const message = result.content[0].text;
-      expect(message).toContain('deployment mode');
-      expect(message).toContain('without groups: development, test');
-      expect(message).toContain('with cleanup');
+      expect(message).toContain("deployment mode");
+      expect(message).toContain("without groups: development, test");
+      expect(message).toContain("with cleanup");
     });
   });
 
-  describe('error handling', () => {
-    it('should handle unexpected errors', async () => {
+  describe("error handling", () => {
+    it("should handle unexpected errors", async () => {
       // Mock a tool that throws an unexpected error
       const toolWithError = new BundleInstallTool();
       vi.spyOn(
         toolWithError as unknown as { runBundleCommand: () => Promise<void> },
-        'runBundleCommand'
-      ).mockRejectedValue(new Error('Unexpected error'));
+        "runBundleCommand"
+      ).mockRejectedValue(new Error("Unexpected error"));
 
       const result = await toolWithError.execute({});
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain(
-        'Unexpected error running bundle install'
+        "Unexpected error running bundle install"
       );
-      expect(result.content[0].text).toContain('Unexpected error');
+      expect(result.content[0].text).toContain("Unexpected error");
     });
   });
 
   // Helper functions for mocking spawn behavior
-  function mockSuccessfulBundleProcess(stdout = 'Bundle install completed.') {
+  function mockSuccessfulBundleProcess(stdout = "Bundle install completed.") {
     const mockProcess = createMockProcess();
     mockSpawn.mockReturnValue(mockProcess);
 
     // Simulate successful execution
     setImmediate(() => {
-      mockProcess.stdout?.emit('data', stdout);
-      mockProcess.emit('close', 0);
+      mockProcess.stdout?.emit("data", stdout);
+      mockProcess.emit("close", 0);
     });
   }
 
   function mockFailedBundleProcess(
-    stderr = 'Bundle install failed',
+    stderr = "Bundle install failed",
     exitCode = 1
   ) {
     const mockProcess = createMockProcess();
@@ -352,8 +352,8 @@ describe('BundleInstallTool', () => {
 
     // Simulate failed execution
     setImmediate(() => {
-      mockProcess.stderr?.emit('data', stderr);
-      mockProcess.emit('close', exitCode);
+      mockProcess.stderr?.emit("data", stderr);
+      mockProcess.emit("close", exitCode);
     });
   }
 
@@ -363,7 +363,7 @@ describe('BundleInstallTool', () => {
 
     // Simulate process error
     setImmediate(() => {
-      mockProcess.emit('error', error);
+      mockProcess.emit("error", error);
     });
   }
 
@@ -375,7 +375,9 @@ describe('BundleInstallTool', () => {
           const handlers = mockEventEmitter.stdout.on.mock.calls
             .filter((call) => call[0] === event)
             .map((call) => call[1]);
-          handlers.forEach((handler) => handler(data));
+          for (const handler of handlers) {
+            handler(data);
+          }
         }),
       },
       stderr: {
@@ -384,7 +386,9 @@ describe('BundleInstallTool', () => {
           const handlers = mockEventEmitter.stderr.on.mock.calls
             .filter((call) => call[0] === event)
             .map((call) => call[1]);
-          handlers.forEach((handler) => handler(data));
+          for (const handler of handlers) {
+            handler(data);
+          }
         }),
       },
       on: vi.fn(),
@@ -392,63 +396,65 @@ describe('BundleInstallTool', () => {
         const handlers = mockEventEmitter.on.mock.calls
           .filter((call) => call[0] === event)
           .map((call) => call[1]);
-        handlers.forEach((handler) => handler(...args));
+        for (const handler of handlers) {
+          handler(...args);
+        }
       }),
     };
 
     return mockEventEmitter as unknown as ChildProcess;
   }
 
-  describe('error handling edge cases', () => {
-    it('should handle bundle install failure with project name in error message', async () => {
+  describe("error handling edge cases", () => {
+    it("should handle bundle install failure with project name in error message", async () => {
       // Create a failing bundle install
-      mockFailedBundleProcess('Bundle install failed', 1);
+      mockFailedBundleProcess("Bundle install failed", 1);
 
-      const result = await tool.execute({ project: 'test' });
+      const result = await tool.execute({ project: "test" });
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain("in project 'test'");
     });
 
-    it('should handle non-Error exceptions in project resolution', async () => {
+    it("should handle non-Error exceptions in project resolution", async () => {
       // Mock project manager to throw a non-Error exception
-      const badProjectManager: Pick<ProjectManager, 'getProjectPath'> = {
+      const badProjectManager: Pick<ProjectManager, "getProjectPath"> = {
         getProjectPath: vi.fn().mockImplementation(() => {
-          throw 'string error in project resolution';
+          throw "string error in project resolution";
         }),
       };
       const badTool = new BundleInstallTool({
         projectManager: badProjectManager as ProjectManager,
       });
 
-      const result = await badTool.execute({ project: 'test' });
+      const result = await badTool.execute({ project: "test" });
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Error:');
-      expect(result.content[0].text).toContain('Unknown error');
+      expect(result.content[0].text).toContain("Error:");
+      expect(result.content[0].text).toContain("Unknown error");
     });
 
-    it('should handle non-Error exceptions', async () => {
+    it("should handle non-Error exceptions", async () => {
       // Mock spawn to throw a string instead of Error
       mockSpawn.mockImplementation(() => {
-        throw 'string error';
+        throw "string error";
       });
 
       const result = await tool.execute({});
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Unexpected error');
-      expect(result.content[0].text).toContain('Unknown error');
+      expect(result.content[0].text).toContain("Unexpected error");
+      expect(result.content[0].text).toContain("Unknown error");
     });
 
-    it('should handle bundle install failure without project name', async () => {
-      mockFailedBundleProcess('Bundle error', 1);
+    it("should handle bundle install failure without project name", async () => {
+      mockFailedBundleProcess("Bundle error", 1);
 
       const result = await tool.execute({});
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Bundle install failed');
-      expect(result.content[0].text).not.toContain('in project');
+      expect(result.content[0].text).toContain("Bundle install failed");
+      expect(result.content[0].text).not.toContain("in project");
     });
   });
 });
