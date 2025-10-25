@@ -17,11 +17,13 @@ import { RubyGemsClient } from './api/client.js';
 import { SearchTool } from './tools/search.js';
 import { DetailsTool } from './tools/details.js';
 import { VersionsTool } from './tools/versions.js';
+import { ChangelogTool } from './tools/changelog.js';
 import { GemfileParserTool } from './tools/gemfile-parser.js';
 import { GemPinTool } from './tools/pin.js';
 import { GemAddTool } from './tools/add.js';
 import { BundleInstallTool } from './tools/bundle-install.js';
 import { BundleToolsManager } from './tools/bundle-tools.js';
+import { ChangelogFetcher } from './changelog/fetcher.js';
 import { ProjectManager, type ProjectConfig } from './project-manager.js';
 import {
   type QuoteConfig,
@@ -34,6 +36,7 @@ import {
   GemVersionsSchema,
   LatestVersionSchema,
   GemDependenciesSchema,
+  ChangelogSchema,
   GemfileParserSchema,
   GemPinSchema,
   GemUnpinSchema,
@@ -54,6 +57,8 @@ export class GemsServer {
   private searchTool: SearchTool;
   private detailsTool: DetailsTool;
   private versionsTool: VersionsTool;
+  private changelogFetcher: ChangelogFetcher;
+  private changelogTool: ChangelogTool;
   private gemfileParserTool: GemfileParserTool;
   private gemPinTool: GemPinTool;
   private gemAddTool: GemAddTool;
@@ -83,6 +88,13 @@ export class GemsServer {
     this.searchTool = new SearchTool({ client: this.client });
     this.detailsTool = new DetailsTool({ client: this.client });
     this.versionsTool = new VersionsTool({ client: this.client });
+    this.changelogFetcher = new ChangelogFetcher({
+      client: this.client,
+      cacheEnabled: true,
+      cacheTtl: 24 * 60 * 60 * 1000, // 24 hours
+      timeout: 10000,
+    });
+    this.changelogTool = new ChangelogTool({ fetcher: this.changelogFetcher });
     this.gemfileParserTool = new GemfileParserTool({
       projectManager: this.projectManager,
     });
@@ -158,6 +170,17 @@ export class GemsServer {
         inputSchema: GemDependenciesSchema.shape,
       },
       async (args) => this.versionsTool.executeGetDependencies(args)
+    );
+
+    // Register get_gem_changelog tool
+    this.server.registerTool(
+      'get_gem_changelog',
+      {
+        description:
+          'Fetch the changelog for a gem from various sources (changelog URI, GitHub releases, raw files). Optionally specify a version to get version-specific changelog content.',
+        inputSchema: ChangelogSchema.shape,
+      },
+      async (args) => this.changelogTool.execute(args)
     );
 
     // Register parse_gemfile tool
@@ -304,6 +327,9 @@ export class GemsServer {
     try {
       // Clear API cache
       this.client.clearCache();
+
+      // Clear changelog cache
+      this.changelogFetcher.clearCache();
 
       // Close server if needed
       // The MCP SDK handles server cleanup automatically
@@ -490,5 +516,7 @@ if (isMainModule) {
 // Export for use in other modules
 export { RubyGemsClient } from './api/client.js';
 export { ApiCache } from './api/cache.js';
+export { ChangelogFetcher } from './changelog/fetcher.js';
+export { ChangelogCache } from './changelog/cache.js';
 export * from './types.js';
 export * from './schemas.js';

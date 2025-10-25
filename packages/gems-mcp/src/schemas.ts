@@ -44,6 +44,23 @@ export const GemDependenciesSchema = z.object({
     .regex(/^[a-zA-Z0-9_-]+$/, 'Invalid gem name format'),
 });
 
+export const ChangelogSchema = z.object({
+  gem_name: z
+    .string()
+    .min(1, 'Gem name cannot be empty')
+    .max(50, 'Gem name too long')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Invalid gem name format'),
+  version: z
+    .string()
+    .min(1, 'Version cannot be empty')
+    .max(50, 'Version too long')
+    .regex(
+      /^[0-9]+(?:\.[0-9]+)*(?:\.(?:pre|rc|alpha|beta)\d*)?$/,
+      'Invalid version format'
+    )
+    .optional(),
+});
+
 export const GemfileParserSchema = z.object({
   file_path: z
     .string()
@@ -412,6 +429,28 @@ export const gemDependenciesInputSchema = {
       minLength: 1,
       maxLength: 50,
       pattern: '^[a-zA-Z0-9_-]+$',
+    },
+  },
+  required: ['gem_name' as const],
+  additionalProperties: false,
+};
+
+export const changelogInputSchema = {
+  type: 'object' as const,
+  properties: {
+    gem_name: {
+      type: 'string' as const,
+      description: 'Name of the gem to fetch changelog for',
+      minLength: 1,
+      maxLength: 50,
+      pattern: '^[a-zA-Z0-9_-]+$',
+    },
+    version: {
+      type: 'string' as const,
+      description: 'Specific version to fetch changelog for (optional)',
+      minLength: 1,
+      maxLength: 50,
+      pattern: '^[0-9]+(?:\\.[0-9]+)*(?:\\.(?:pre|rc|alpha|beta)\\d*)?$',
     },
   },
   required: ['gem_name' as const],
@@ -814,6 +853,7 @@ export type GemDetailsInput = z.infer<typeof GemDetailsSchema>;
 export type GemVersionsInput = z.infer<typeof GemVersionsSchema>;
 export type LatestVersionInput = z.infer<typeof LatestVersionSchema>;
 export type GemDependenciesInput = z.infer<typeof GemDependenciesSchema>;
+export type ChangelogInput = z.infer<typeof ChangelogSchema>;
 export type GemfileParserInput = z.infer<typeof GemfileParserSchema>;
 export type GemPinInput = z.infer<typeof GemPinSchema>;
 export type GemUnpinInput = z.infer<typeof GemUnpinSchema>;
