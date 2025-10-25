@@ -17,7 +17,7 @@ export interface RailsGenerator {
 export interface GeneratorOption {
   name: string;
   description: string;
-  type: 'boolean' | 'string' | 'array';
+  type: "boolean" | "string" | "array";
   default?: unknown;
   required?: boolean;
   aliases?: string[];
@@ -35,13 +35,13 @@ export interface GeneratorArgument {
   name: string;
   description: string;
   required: boolean;
-  type: 'string' | 'array';
+  type: "string" | "array";
 }
 
 export interface RailsProjectInfo {
   isRailsProject: boolean;
   railsVersion?: string;
-  projectType?: 'application' | 'engine' | 'gem';
+  projectType?: "application" | "engine" | "gem";
   rootPath: string;
 }
 
@@ -66,7 +66,7 @@ export interface ToolExecutionContext {
   project?: string;
   workingDirectory: string;
   railsVersion?: string;
-  projectType?: 'application' | 'engine' | 'gem';
+  projectType?: "application" | "engine" | "gem";
   timestamp: string;
 }
 
@@ -85,7 +85,7 @@ export interface StructuredToolOutput {
 }
 
 export interface GeneratorsListOutput extends StructuredToolOutput {
-  action: 'list_generators';
+  action: "list_generators";
   data: {
     generators: RailsGenerator[];
     totalCount: number;
@@ -94,7 +94,7 @@ export interface GeneratorsListOutput extends StructuredToolOutput {
 }
 
 export interface GeneratorHelpOutput extends StructuredToolOutput {
-  action: 'get_generator_help';
+  action: "get_generator_help";
   data: {
     generator: GeneratorHelp;
     availableOptions: string[];
@@ -103,7 +103,7 @@ export interface GeneratorHelpOutput extends StructuredToolOutput {
 }
 
 export interface GenerateOutput extends StructuredToolOutput {
-  action: 'generate';
+  action: "generate";
   data: {
     generatorName: string;
     arguments: string[];
@@ -115,7 +115,7 @@ export interface GenerateOutput extends StructuredToolOutput {
 }
 
 export interface DestroyOutput extends StructuredToolOutput {
-  action: 'destroy';
+  action: "destroy";
   data: {
     generatorName: string;
     arguments: string[];

@@ -2,19 +2,19 @@
  * MCP tool for executing Rails generators
  */
 
-import { validateInput } from '../utils/validation.js';
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { RailsClient } from "../api/rails-client.js";
+import type { ProjectManager } from "../project-manager.js";
+import { type GenerateInput, GenerateSchema } from "../schemas.js";
+import type { GenerateOutput } from "../types.js";
 import {
-  createStructuredResult,
-  createStructuredError,
   createExecutionContext,
-  generateHumanReadableSummary,
+  createStructuredError,
+  createStructuredResult,
   formatFileList,
-} from '../utils/structured-output.js';
-import { GenerateSchema, type GenerateInput } from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { ProjectManager } from '../project-manager.js';
-import type { RailsClient } from '../api/rails-client.js';
-import type { GenerateOutput } from '../types.js';
+  generateHumanReadableSummary,
+} from "../utils/structured-output.js";
+import { validateInput } from "../utils/validation.js";
 
 export interface GenerateToolOptions {
   client: RailsClient;
@@ -35,8 +35,8 @@ export class GenerateTool {
     const validation = validateInput(GenerateSchema, args);
     if (!validation.success) {
       return createStructuredError(
-        'generate',
-        'validation_error',
+        "generate",
+        "validation_error",
         validation.error
       );
     }
@@ -56,9 +56,9 @@ export class GenerateTool {
         : process.cwd();
     } catch (error) {
       return createStructuredError(
-        'generate',
-        'project_resolution_error',
-        error instanceof Error ? error.message : 'Unknown error',
+        "generate",
+        "project_resolution_error",
+        error instanceof Error ? error.message : "Unknown error",
         { project }
       );
     }
@@ -69,8 +69,8 @@ export class GenerateTool {
 
       if (!projectInfo.isRailsProject) {
         return createStructuredError(
-          'generate',
-          'not_rails_project',
+          "generate",
+          "not_rails_project",
           `Directory ${workingDirectory} does not contain a Rails application`,
           createExecutionContext(projectInfo, project)
         );
@@ -86,8 +86,8 @@ export class GenerateTool {
 
       if (!response.success) {
         return createStructuredError(
-          'generate',
-          'generator_execution_error',
+          "generate",
+          "generator_execution_error",
           `Failed to execute generator '${generator_name}': ${response.error}`,
           createExecutionContext(projectInfo, project)
         );
@@ -97,8 +97,8 @@ export class GenerateTool {
 
       if (!result.success) {
         return createStructuredError(
-          'generate',
-          'generator_failure',
+          "generate",
+          "generator_failure",
           `Generator execution failed: ${result.error}`,
           createExecutionContext(projectInfo, project),
           result.output
@@ -108,7 +108,7 @@ export class GenerateTool {
       // Create structured output
       const output: GenerateOutput = {
         success: true,
-        action: 'generate',
+        action: "generate",
         summary: `Successfully executed '${generator_name}' generator - ${result.filesCreated.length} files created, ${result.filesModified.length} files modified`,
         context: createExecutionContext(projectInfo, project),
         data: {
@@ -130,30 +130,30 @@ export class GenerateTool {
 
       // Generate human-readable text
       let humanText = generateHumanReadableSummary(output);
-      humanText += formatFileList('Files Created', result.filesCreated);
-      humanText += formatFileList('Files Modified', result.filesModified);
+      humanText += formatFileList("Files Created", result.filesCreated);
+      humanText += formatFileList("Files Modified", result.filesModified);
 
       if (result.output) {
-        humanText += '\n**Command Output:**\n```\n' + result.output + '\n```\n';
+        humanText += `\n**Command Output:**\n\`\`\`\n${result.output}\n\`\`\`\n`;
       }
 
-      humanText += '\n📋 **Execution Summary:**\n';
+      humanText += "\n📋 **Execution Summary:**\n";
       humanText += `- Generator: \`${generator_name}\`\n`;
-      humanText += `- Arguments: ${genArgs.length > 0 ? genArgs.map((a) => `\`${a}\``).join(', ') : 'None'}\n`;
+      humanText += `- Arguments: ${genArgs.length > 0 ? genArgs.map((a) => `\`${a}\``).join(", ") : "None"}\n`;
       humanText += `- Options: ${
         Object.keys(options).length > 0
           ? Object.keys(options)
               .map((o) => `\`--${o}\``)
-              .join(', ')
-          : 'None'
+              .join(", ")
+          : "None"
       }\n`;
 
       return createStructuredResult(output, humanText);
     } catch (error) {
       return createStructuredError(
-        'generate',
-        'unexpected_error',
-        error instanceof Error ? error.message : 'Unknown error occurred',
+        "generate",
+        "unexpected_error",
+        error instanceof Error ? error.message : "Unknown error occurred",
         { workingDirectory, project }
       );
     }

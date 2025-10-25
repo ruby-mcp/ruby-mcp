@@ -2,10 +2,10 @@
  * MCP tool for getting detailed gem information
  */
 
-import { RubyGemsClient } from '../api/client.js';
-import { validateInput } from '../utils/validation.js';
-import { GemDetailsSchema, type GemDetailsInput } from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { RubyGemsClient } from "../api/client.js";
+import { type GemDetailsInput, GemDetailsSchema } from "../schemas.js";
+import { validateInput } from "../utils/validation.js";
 
 export interface DetailsToolOptions {
   client: RubyGemsClient;
@@ -25,7 +25,7 @@ export class DetailsTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -43,7 +43,7 @@ export class DetailsTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Error getting gem details: ${response.error}`,
             },
           ],
@@ -72,13 +72,13 @@ export class DetailsTool {
       details += `**Version Downloads:** ${gem.version_downloads.toLocaleString()}\n`;
 
       if (gem.licenses && gem.licenses.length > 0) {
-        details += `**License:** ${gem.licenses.join(', ')}\n`;
+        details += `**License:** ${gem.licenses.join(", ")}\n`;
       }
 
-      details += `**Yanked:** ${gem.yanked ? 'Yes' : 'No'}\n\n`;
+      details += `**Yanked:** ${gem.yanked ? "Yes" : "No"}\n\n`;
 
       // Links section
-      details += `## Links\n`;
+      details += "## Links\n";
       details += `- **RubyGems:** ${gem.project_uri}\n`;
       details += `- **Download:** ${gem.gem_uri}\n`;
 
@@ -110,26 +110,26 @@ export class DetailsTool {
       // Dependencies section
       if (gem.dependencies) {
         if (gem.dependencies.runtime.length > 0) {
-          details += `\n## Runtime Dependencies\n`;
-          gem.dependencies.runtime.forEach((dep) => {
+          details += "\n## Runtime Dependencies\n";
+          for (const dep of gem.dependencies.runtime) {
             details += `- ${dep.name} ${dep.requirements}\n`;
-          });
+          }
         }
 
         if (gem.dependencies.development.length > 0) {
-          details += `\n## Development Dependencies\n`;
-          gem.dependencies.development.forEach((dep) => {
+          details += "\n## Development Dependencies\n";
+          for (const dep of gem.dependencies.development) {
             details += `- ${dep.name} ${dep.requirements}\n`;
-          });
+          }
         }
       }
 
       // Metadata section
       if (gem.metadata && Object.keys(gem.metadata).length > 0) {
-        details += `\n## Metadata\n`;
-        Object.entries(gem.metadata).forEach(([key, value]) => {
+        details += "\n## Metadata\n";
+        for (const [key, value] of Object.entries(gem.metadata)) {
           details += `- **${key}:** ${value}\n`;
-        });
+        }
       }
 
       if (gem.sha) {
@@ -139,7 +139,7 @@ export class DetailsTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: details,
           },
         ],
@@ -148,8 +148,8 @@ export class DetailsTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error while getting gem details: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error while getting gem details: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,

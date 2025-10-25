@@ -2,12 +2,12 @@
  * Test setup file for Rails MCP tests
  */
 
-import { beforeAll, afterEach, afterAll, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
 
 // Child process mocks are handled per test file
 
 // Mock fs for file system operations in tests
-vi.mock('fs', async (importOriginal) => {
+vi.mock("fs", async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,

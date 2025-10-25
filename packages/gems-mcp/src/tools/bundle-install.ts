@@ -2,11 +2,11 @@
  * MCP tool for running bundle install in project directories
  */
 
-import { spawn } from 'child_process';
-import { validateInput } from '../utils/validation.js';
-import { BundleInstallSchema, type BundleInstallInput } from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { ProjectManager } from '../project-manager.js';
+import { spawn } from "node:child_process";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { ProjectManager } from "../project-manager.js";
+import { type BundleInstallInput, BundleInstallSchema } from "../schemas.js";
+import { validateInput } from "../utils/validation.js";
 
 export class BundleInstallTool {
   private projectManager?: ProjectManager;
@@ -21,7 +21,7 @@ export class BundleInstallTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -42,8 +42,8 @@ export class BundleInstallTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -51,37 +51,37 @@ export class BundleInstallTool {
     }
 
     // Build bundle install command arguments
-    const bundleArgs = ['install'];
+    const bundleArgs = ["install"];
 
     if (deployment) {
-      bundleArgs.push('--deployment');
+      bundleArgs.push("--deployment");
     }
 
     if (without && without.length > 0) {
-      bundleArgs.push('--without', without.join(','));
+      bundleArgs.push("--without", without.join(","));
     }
 
     if (gemfile) {
-      bundleArgs.push('--gemfile', gemfile);
+      bundleArgs.push("--gemfile", gemfile);
     }
 
     if (clean) {
-      bundleArgs.push('--clean');
+      bundleArgs.push("--clean");
     }
 
     if (frozen) {
-      bundleArgs.push('--frozen');
+      bundleArgs.push("--frozen");
     }
 
     if (quiet) {
-      bundleArgs.push('--quiet');
+      bundleArgs.push("--quiet");
     }
 
     try {
       const result = await this.runBundleCommand(bundleArgs, workingDirectory);
 
       if (result.success) {
-        const projectInfo = project ? ` in project '${project}'` : '';
+        const projectInfo = project ? ` in project '${project}'` : "";
         const optionsInfo = this.formatOptions({
           deployment,
           without,
@@ -94,28 +94,27 @@ export class BundleInstallTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Successfully ran bundle install${projectInfo}${optionsInfo}\n\nOutput:\n${result.output}`,
             },
           ],
         };
-      } else {
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Bundle install failed${project ? ` in project '${project}'` : ''}\n\nError:\n${result.error}`,
-            },
-          ],
-          isError: true,
-        };
       }
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Bundle install failed${project ? ` in project '${project}'` : ""}\n\nError:\n${result.error}`,
+          },
+        ],
+        isError: true,
+      };
     } catch (error) {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error running bundle install: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error running bundle install: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,
@@ -133,17 +132,17 @@ export class BundleInstallTool {
   }): string {
     const activeOptions: string[] = [];
 
-    if (options.deployment) activeOptions.push('deployment mode');
+    if (options.deployment) activeOptions.push("deployment mode");
     if (options.without && options.without.length > 0) {
-      activeOptions.push(`without groups: ${options.without.join(', ')}`);
+      activeOptions.push(`without groups: ${options.without.join(", ")}`);
     }
     if (options.gemfile)
       activeOptions.push(`using Gemfile: ${options.gemfile}`);
-    if (options.clean) activeOptions.push('with cleanup');
-    if (options.frozen) activeOptions.push('frozen mode');
-    if (options.quiet) activeOptions.push('quiet mode');
+    if (options.clean) activeOptions.push("with cleanup");
+    if (options.frozen) activeOptions.push("frozen mode");
+    if (options.quiet) activeOptions.push("quiet mode");
 
-    return activeOptions.length > 0 ? ` (${activeOptions.join(', ')})` : '';
+    return activeOptions.length > 0 ? ` (${activeOptions.join(", ")})` : "";
   }
 
   private runBundleCommand(
@@ -151,24 +150,24 @@ export class BundleInstallTool {
     cwd: string
   ): Promise<{ success: boolean; output: string; error: string }> {
     return new Promise((resolve) => {
-      const bundleProcess = spawn('bundle', args, {
+      const bundleProcess = spawn("bundle", args, {
         cwd,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        stdio: ["pipe", "pipe", "pipe"],
         env: { ...process.env },
       });
 
-      let stdout = '';
-      let stderr = '';
+      let stdout = "";
+      let stderr = "";
 
-      bundleProcess.stdout?.on('data', (data) => {
+      bundleProcess.stdout?.on("data", (data) => {
         stdout += data.toString();
       });
 
-      bundleProcess.stderr?.on('data', (data) => {
+      bundleProcess.stderr?.on("data", (data) => {
         stderr += data.toString();
       });
 
-      bundleProcess.on('close', (code) => {
+      bundleProcess.on("close", (code) => {
         const success = code === 0;
         const output = stdout.trim();
         const error = stderr.trim();
@@ -176,17 +175,17 @@ export class BundleInstallTool {
         resolve({
           success,
           output:
-            output || (success ? 'Bundle install completed successfully.' : ''),
+            output || (success ? "Bundle install completed successfully." : ""),
           error:
             error ||
-            (success ? '' : `Bundle install failed with exit code ${code}`),
+            (success ? "" : `Bundle install failed with exit code ${code}`),
         });
       });
 
-      bundleProcess.on('error', (error) => {
+      bundleProcess.on("error", (error) => {
         resolve({
           success: false,
-          output: '',
+          output: "",
           error: `Failed to start bundle command: ${error.message}`,
         });
       });

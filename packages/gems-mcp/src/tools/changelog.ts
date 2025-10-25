@@ -2,10 +2,10 @@
  * MCP tool for fetching gem changelogs
  */
 
-import { ChangelogFetcher } from '../changelog/fetcher.js';
-import { validateInput } from '../utils/validation.js';
-import { ChangelogSchema, type ChangelogInput } from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { ChangelogFetcher } from "../changelog/fetcher.js";
+import { type ChangelogInput, ChangelogSchema } from "../schemas.js";
+import { validateInput } from "../utils/validation.js";
 
 export interface ChangelogToolOptions {
   fetcher: ChangelogFetcher;
@@ -25,7 +25,7 @@ export class ChangelogTool {
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: `Error: ${validation.error}`,
           },
         ],
@@ -43,7 +43,7 @@ export class ChangelogTool {
         return {
           content: [
             {
-              type: 'text',
+              type: "text",
               text: `Error fetching changelog: ${result.error}`,
             },
           ],
@@ -56,19 +56,19 @@ export class ChangelogTool {
       if (version) {
         response += ` v${version}`;
       }
-      response += '\n\n';
+      response += "\n\n";
 
       if (result.source) {
         response += `**Source:** ${result.source}\n\n`;
       }
 
-      response += '---\n\n';
+      response += "---\n\n";
       response += result.content;
 
       return {
         content: [
           {
-            type: 'text',
+            type: "text",
             text: response,
           },
         ],
@@ -77,8 +77,8 @@ export class ChangelogTool {
       return {
         content: [
           {
-            type: 'text',
-            text: `Unexpected error while fetching changelog: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            type: "text",
+            text: `Unexpected error while fetching changelog: ${error instanceof Error ? error.message : "Unknown error"}`,
           },
         ],
         isError: true,

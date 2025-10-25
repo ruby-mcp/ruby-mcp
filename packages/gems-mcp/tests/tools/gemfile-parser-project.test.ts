@@ -2,17 +2,17 @@
  * Tests for GemfileParserTool with project manager support
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { promises as fs } from 'fs';
-import { join } from 'path';
-import { tmpdir } from 'os';
-import { GemfileParserTool } from '../../src/tools/gemfile-parser.js';
+import { promises as fs } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
-  ProjectManager,
   type ProjectConfig,
-} from '../../src/project-manager.js';
+  ProjectManager,
+} from "../../src/project-manager.js";
+import { GemfileParserTool } from "../../src/tools/gemfile-parser.js";
 
-describe('GemfileParserTool with ProjectManager', () => {
+describe("GemfileParserTool with ProjectManager", () => {
   let tool: GemfileParserTool;
   let projectManager: ProjectManager;
   let tempDir: string;
@@ -20,9 +20,9 @@ describe('GemfileParserTool with ProjectManager', () => {
   let project2Dir: string;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(join(tmpdir(), 'gemfile-parser-project-test-'));
-    project1Dir = join(tempDir, 'project1');
-    project2Dir = join(tempDir, 'project2');
+    tempDir = await fs.mkdtemp(join(tmpdir(), "gemfile-parser-project-test-"));
+    project1Dir = join(tempDir, "project1");
+    project2Dir = join(tempDir, "project2");
 
     // Create test project directories
     await fs.mkdir(project1Dir, { recursive: true });
@@ -30,7 +30,7 @@ describe('GemfileParserTool with ProjectManager', () => {
 
     // Create test Gemfiles
     await fs.writeFile(
-      join(project1Dir, 'Gemfile'),
+      join(project1Dir, "Gemfile"),
       `
 source 'https://rubygems.org'
 gem 'rails', '7.0.0'
@@ -39,7 +39,7 @@ gem 'pg'
     );
 
     await fs.writeFile(
-      join(project2Dir, 'Gemfile'),
+      join(project2Dir, "Gemfile"),
       `
 source 'https://rubygems.org'
 gem 'sinatra', '~> 3.0'
@@ -48,7 +48,7 @@ gem 'sequel'
     );
 
     await fs.writeFile(
-      join(project1Dir, 'my_gem.gemspec'),
+      join(project1Dir, "my_gem.gemspec"),
       `
 Gem::Specification.new do |spec|
   spec.name = "my_gem"
@@ -62,8 +62,8 @@ end
 
     // Setup project manager
     const projects: ProjectConfig[] = [
-      { name: 'rails-app', path: project1Dir },
-      { name: 'sinatra-app', path: project2Dir },
+      { name: "rails-app", path: project1Dir },
+      { name: "sinatra-app", path: project2Dir },
     ];
     projectManager = new ProjectManager(projects);
     tool = new GemfileParserTool({ projectManager });
@@ -74,22 +74,22 @@ end
     await fs.rm(tempDir, { recursive: true });
   });
 
-  describe('project parameter validation', () => {
-    it('should accept valid project parameter', async () => {
+  describe("project parameter validation", () => {
+    it("should accept valid project parameter", async () => {
       const result = await tool.execute({
-        file_path: 'Gemfile',
-        project: 'rails-app',
+        file_path: "Gemfile",
+        project: "rails-app",
       });
 
       expect(result.isError).toBeFalsy();
       const parsed = JSON.parse(result.content[0].text);
-      expect(parsed.gems[0].name).toBe('rails');
+      expect(parsed.gems[0].name).toBe("rails");
     });
 
-    it('should reject invalid project parameter', async () => {
+    it("should reject invalid project parameter", async () => {
       const result = await tool.execute({
-        file_path: 'Gemfile',
-        project: 'non-existent-project',
+        file_path: "Gemfile",
+        project: "non-existent-project",
       });
 
       expect(result.isError).toBe(true);
@@ -98,9 +98,9 @@ end
       );
     });
 
-    it('should accept empty project parameter and use default', async () => {
+    it("should accept empty project parameter and use default", async () => {
       // Create Gemfile in default directory (current working directory)
-      const defaultGemfile = join(process.cwd(), 'test-Gemfile');
+      const defaultGemfile = join(process.cwd(), "test-Gemfile");
       await fs.writeFile(
         defaultGemfile,
         `
@@ -111,22 +111,22 @@ gem 'bundler'
 
       try {
         const result = await tool.execute({
-          file_path: 'test-Gemfile',
+          file_path: "test-Gemfile",
         });
 
         expect(result.isError).toBeFalsy();
         const parsed = JSON.parse(result.content[0].text);
-        expect(parsed.gems[0].name).toBe('bundler');
+        expect(parsed.gems[0].name).toBe("bundler");
       } finally {
         // Clean up
         await fs.unlink(defaultGemfile);
       }
     });
 
-    it('should reject project parameter that is too long', async () => {
+    it("should reject project parameter that is too long", async () => {
       const result = await tool.execute({
-        file_path: 'Gemfile',
-        project: 'a'.repeat(101), // Exceeds 100 character limit
+        file_path: "Gemfile",
+        project: "a".repeat(101), // Exceeds 100 character limit
       });
 
       expect(result.isError).toBe(true);
@@ -134,99 +134,99 @@ gem 'bundler'
     });
   });
 
-  describe('file resolution with projects', () => {
-    it('should resolve relative path within specified project', async () => {
+  describe("file resolution with projects", () => {
+    it("should resolve relative path within specified project", async () => {
       const result = await tool.execute({
-        file_path: 'Gemfile',
-        project: 'rails-app',
+        file_path: "Gemfile",
+        project: "rails-app",
       });
 
       expect(result.isError).toBeFalsy();
       const parsed = JSON.parse(result.content[0].text);
-      expect(parsed.path).toBe(join(project1Dir, 'Gemfile'));
-      expect(parsed.gems[0].name).toBe('rails');
+      expect(parsed.path).toBe(join(project1Dir, "Gemfile"));
+      expect(parsed.gems[0].name).toBe("rails");
     });
 
-    it('should resolve relative path in different project', async () => {
+    it("should resolve relative path in different project", async () => {
       const result = await tool.execute({
-        file_path: 'Gemfile',
-        project: 'sinatra-app',
+        file_path: "Gemfile",
+        project: "sinatra-app",
       });
 
       expect(result.isError).toBeFalsy();
       const parsed = JSON.parse(result.content[0].text);
-      expect(parsed.path).toBe(join(project2Dir, 'Gemfile'));
-      expect(parsed.gems[0].name).toBe('sinatra');
+      expect(parsed.path).toBe(join(project2Dir, "Gemfile"));
+      expect(parsed.gems[0].name).toBe("sinatra");
     });
 
-    it('should handle nested paths within project', async () => {
+    it("should handle nested paths within project", async () => {
       // Create nested structure
-      const configDir = join(project1Dir, 'config');
+      const configDir = join(project1Dir, "config");
       await fs.mkdir(configDir);
       await fs.writeFile(
-        join(configDir, 'Gemfile.extra'),
+        join(configDir, "Gemfile.extra"),
         `
 gem 'redis'
 `
       );
 
       const result = await tool.execute({
-        file_path: 'config/Gemfile.extra',
-        project: 'rails-app',
+        file_path: "config/Gemfile.extra",
+        project: "rails-app",
       });
 
       expect(result.isError).toBeFalsy();
       const parsed = JSON.parse(result.content[0].text);
-      expect(parsed.path).toBe(join(project1Dir, 'config/Gemfile.extra'));
-      expect(parsed.gems[0].name).toBe('redis');
+      expect(parsed.path).toBe(join(project1Dir, "config/Gemfile.extra"));
+      expect(parsed.gems[0].name).toBe("redis");
     });
 
-    it('should handle absolute paths regardless of project', async () => {
-      const absolutePath = join(project2Dir, 'Gemfile');
+    it("should handle absolute paths regardless of project", async () => {
+      const absolutePath = join(project2Dir, "Gemfile");
 
       const result = await tool.execute({
         file_path: absolutePath,
-        project: 'rails-app', // Different project, but absolute path should override
+        project: "rails-app", // Different project, but absolute path should override
       });
 
       expect(result.isError).toBeFalsy();
       const parsed = JSON.parse(result.content[0].text);
       expect(parsed.path).toBe(absolutePath);
-      expect(parsed.gems[0].name).toBe('sinatra'); // Should read sinatra-app's Gemfile
+      expect(parsed.gems[0].name).toBe("sinatra"); // Should read sinatra-app's Gemfile
     });
   });
 
-  describe('gemspec parsing with projects', () => {
-    it('should parse gemspec files within project', async () => {
+  describe("gemspec parsing with projects", () => {
+    it("should parse gemspec files within project", async () => {
       const result = await tool.execute({
-        file_path: 'my_gem.gemspec',
-        project: 'rails-app',
+        file_path: "my_gem.gemspec",
+        project: "rails-app",
       });
 
       expect(result.isError).toBeFalsy();
       const parsed = JSON.parse(result.content[0].text);
-      expect(parsed.type).toBe('gemspec');
-      expect(parsed.path).toBe(join(project1Dir, 'my_gem.gemspec'));
+      expect(parsed.type).toBe("gemspec");
+      expect(parsed.path).toBe(join(project1Dir, "my_gem.gemspec"));
       expect(parsed.gems).toHaveLength(2);
 
       expect(parsed.gems[0]).toEqual({
-        name: 'activesupport',
-        requirement: '~> 7.0',
+        name: "activesupport",
+        requirement: "~> 7.0",
       });
 
       expect(parsed.gems[1]).toEqual({
-        name: 'rspec',
-        requirement: '~> 3.0',
-        group: ['development'],
+        name: "rspec",
+        requirement: "~> 3.0",
+        group: ["development"],
       });
     });
   });
 
-  describe('error handling with projects', () => {
-    it('should show resolved path in error messages', async () => {
+  describe("error handling with projects", () => {
+    it("should show resolved path in error messages", async () => {
       const result = await tool.execute({
-        file_path: 'non-existent.gemfile',
-        project: 'rails-app',
+        file_path: "non-existent.gemfile",
+        project: "rails-app",
       });
 
       expect(result.isError).toBe(true);
@@ -235,10 +235,10 @@ gem 'redis'
       );
     });
 
-    it('should handle project manager errors gracefully', async () => {
+    it("should handle project manager errors gracefully", async () => {
       const result = await tool.execute({
-        file_path: 'Gemfile',
-        project: 'unknown-project',
+        file_path: "Gemfile",
+        project: "unknown-project",
       });
 
       expect(result.isError).toBe(true);
@@ -248,11 +248,11 @@ gem 'redis'
     });
   });
 
-  describe('backward compatibility', () => {
-    it('should work without project manager (legacy mode)', async () => {
+  describe("backward compatibility", () => {
+    it("should work without project manager (legacy mode)", async () => {
       // Create tool without project manager
       const legacyTool = new GemfileParserTool();
-      const absolutePath = join(project1Dir, 'Gemfile');
+      const absolutePath = join(project1Dir, "Gemfile");
 
       const result = await legacyTool.execute({
         file_path: absolutePath,
@@ -260,11 +260,11 @@ gem 'redis'
 
       expect(result.isError).toBeFalsy();
       const parsed = JSON.parse(result.content[0].text);
-      expect(parsed.gems[0].name).toBe('rails');
+      expect(parsed.gems[0].name).toBe("rails");
     });
 
-    it('should work with direct file paths even when project manager is available', async () => {
-      const absolutePath = join(project2Dir, 'Gemfile');
+    it("should work with direct file paths even when project manager is available", async () => {
+      const absolutePath = join(project2Dir, "Gemfile");
 
       const result = await tool.execute({
         file_path: absolutePath,
@@ -273,7 +273,7 @@ gem 'redis'
 
       expect(result.isError).toBeFalsy();
       const parsed = JSON.parse(result.content[0].text);
-      expect(parsed.gems[0].name).toBe('sinatra');
+      expect(parsed.gems[0].name).toBe("sinatra");
     });
   });
 });

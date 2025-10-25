@@ -7,47 +7,47 @@
  * and accessing detailed gem metadata from RubyGems.org.
  */
 
-import { Command } from 'commander';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { RubyGemsClient } from './api/client.js';
-import { SearchTool } from './tools/search.js';
-import { DetailsTool } from './tools/details.js';
-import { VersionsTool } from './tools/versions.js';
-import { ChangelogTool } from './tools/changelog.js';
-import { GemfileParserTool } from './tools/gemfile-parser.js';
-import { GemPinTool } from './tools/pin.js';
-import { GemAddTool } from './tools/add.js';
-import { BundleInstallTool } from './tools/bundle-install.js';
-import { BundleToolsManager } from './tools/bundle-tools.js';
-import { ChangelogFetcher } from './changelog/fetcher.js';
-import { ProjectManager, type ProjectConfig } from './project-manager.js';
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Command } from "commander";
+import { RubyGemsClient } from "./api/client.js";
+import { ChangelogFetcher } from "./changelog/fetcher.js";
+import { type ProjectConfig, ProjectManager } from "./project-manager.js";
 import {
-  type QuoteConfig,
-  DEFAULT_QUOTE_CONFIG,
-  parseQuoteStyle,
-} from './utils/quotes.js';
-import {
-  SearchGemsSchema,
-  GemDetailsSchema,
-  GemVersionsSchema,
-  LatestVersionSchema,
-  GemDependenciesSchema,
+  BundleAuditSchema,
+  BundleCheckSchema,
+  BundleCleanSchema,
+  BundleInstallSchema,
+  BundleShowSchema,
   ChangelogSchema,
-  GemfileParserSchema,
-  GemPinSchema,
-  GemUnpinSchema,
   GemAddToGemfileSchema,
   GemAddToGemspecSchema,
-  BundleInstallSchema,
-  BundleCheckSchema,
-  BundleShowSchema,
-  BundleAuditSchema,
-  BundleCleanSchema,
-} from './schemas.js';
+  GemDependenciesSchema,
+  GemDetailsSchema,
+  GemPinSchema,
+  GemUnpinSchema,
+  GemVersionsSchema,
+  GemfileParserSchema,
+  LatestVersionSchema,
+  SearchGemsSchema,
+} from "./schemas.js";
+import { GemAddTool } from "./tools/add.js";
+import { BundleInstallTool } from "./tools/bundle-install.js";
+import { BundleToolsManager } from "./tools/bundle-tools.js";
+import { ChangelogTool } from "./tools/changelog.js";
+import { DetailsTool } from "./tools/details.js";
+import { GemfileParserTool } from "./tools/gemfile-parser.js";
+import { GemPinTool } from "./tools/pin.js";
+import { SearchTool } from "./tools/search.js";
+import { VersionsTool } from "./tools/versions.js";
+import {
+  DEFAULT_QUOTE_CONFIG,
+  type QuoteConfig,
+  parseQuoteStyle,
+} from "./utils/quotes.js";
 
 export class GemsServer {
   private server: McpServer;
@@ -68,8 +68,8 @@ export class GemsServer {
   constructor(projectManager?: ProjectManager, quoteConfig?: QuoteConfig) {
     // Initialize server
     this.server = new McpServer({
-      name: '@ruby-mcp/gems-mcp',
-      version: '0.1.0',
+      name: "@ruby-mcp/gems-mcp",
+      version: "0.1.0",
     });
 
     // Initialize project manager and quote config
@@ -78,7 +78,7 @@ export class GemsServer {
 
     // Initialize API client
     this.client = new RubyGemsClient({
-      userAgent: '@ruby-mcp/gems-mcp/0.1.0',
+      userAgent: "@ruby-mcp/gems-mcp/0.1.0",
       cacheEnabled: true,
       cacheTtl: 5 * 60 * 1000, // 5 minutes
       rateLimitDelay: 100, // 100ms between requests
@@ -120,9 +120,9 @@ export class GemsServer {
   private setupTools(): void {
     // Register search_gems tool
     this.server.registerTool(
-      'search_gems',
+      "search_gems",
       {
-        description: 'Search for gems on RubyGems.org by name or keywords',
+        description: "Search for gems on RubyGems.org by name or keywords",
         inputSchema: SearchGemsSchema.shape,
       },
       async (args) => this.searchTool.execute(args)
@@ -130,10 +130,10 @@ export class GemsServer {
 
     // Register get_gem_details tool
     this.server.registerTool(
-      'get_gem_details',
+      "get_gem_details",
       {
         description:
-          'Get detailed information about a specific gem including dependencies, metadata, and links',
+          "Get detailed information about a specific gem including dependencies, metadata, and links",
         inputSchema: GemDetailsSchema.shape,
       },
       async (args) => this.detailsTool.execute(args)
@@ -141,10 +141,10 @@ export class GemsServer {
 
     // Register get_gem_versions tool
     this.server.registerTool(
-      'get_gem_versions',
+      "get_gem_versions",
       {
         description:
-          'Get all versions of a specific gem, with optional prerelease filtering',
+          "Get all versions of a specific gem, with optional prerelease filtering",
         inputSchema: GemVersionsSchema.shape,
       },
       async (args) => this.versionsTool.executeGetVersions(args)
@@ -152,10 +152,10 @@ export class GemsServer {
 
     // Register get_latest_version tool
     this.server.registerTool(
-      'get_latest_version',
+      "get_latest_version",
       {
         description:
-          'Get the latest version of a specific gem, with option to include or exclude prerelease versions',
+          "Get the latest version of a specific gem, with option to include or exclude prerelease versions",
         inputSchema: LatestVersionSchema.shape,
       },
       async (args) => this.versionsTool.executeGetLatestVersion(args)
@@ -163,10 +163,10 @@ export class GemsServer {
 
     // Register get_gem_dependencies tool
     this.server.registerTool(
-      'get_gem_dependencies',
+      "get_gem_dependencies",
       {
         description:
-          'Get reverse dependencies for a gem (gems that depend on the specified gem)',
+          "Get reverse dependencies for a gem (gems that depend on the specified gem)",
         inputSchema: GemDependenciesSchema.shape,
       },
       async (args) => this.versionsTool.executeGetDependencies(args)
@@ -174,10 +174,10 @@ export class GemsServer {
 
     // Register get_gem_changelog tool
     this.server.registerTool(
-      'get_gem_changelog',
+      "get_gem_changelog",
       {
         description:
-          'Fetch the changelog for a gem from various sources (changelog URI, GitHub releases, raw files). Optionally specify a version to get version-specific changelog content.',
+          "Fetch the changelog for a gem from various sources (changelog URI, GitHub releases, raw files). Optionally specify a version to get version-specific changelog content.",
         inputSchema: ChangelogSchema.shape,
       },
       async (args) => this.changelogTool.execute(args)
@@ -185,10 +185,10 @@ export class GemsServer {
 
     // Register parse_gemfile tool
     this.server.registerTool(
-      'parse_gemfile',
+      "parse_gemfile",
       {
         description:
-          'Parse a Gemfile or .gemspec file to extract gem dependencies and versions as JSON. Optionally specify a project name to resolve the file path within that project.',
+          "Parse a Gemfile or .gemspec file to extract gem dependencies and versions as JSON. Optionally specify a project name to resolve the file path within that project.",
         inputSchema: GemfileParserSchema.shape,
       },
       async (args) => this.gemfileParserTool.execute(args)
@@ -196,10 +196,10 @@ export class GemsServer {
 
     // Register pin_gem tool
     this.server.registerTool(
-      'pin_gem',
+      "pin_gem",
       {
         description:
-          'Pin a gem to a specific version with configurable pinning type (~>, >=, >, <, <=, =). Optionally specify a project name to resolve the file path within that project.',
+          "Pin a gem to a specific version with configurable pinning type (~>, >=, >, <, <=, =). Optionally specify a project name to resolve the file path within that project.",
         inputSchema: GemPinSchema.shape,
       },
       async (args) => this.gemPinTool.executePin(args)
@@ -207,10 +207,10 @@ export class GemsServer {
 
     // Register unpin_gem tool
     this.server.registerTool(
-      'unpin_gem',
+      "unpin_gem",
       {
         description:
-          'Unpin a gem by removing version constraints from Gemfile. Optionally specify a project name to resolve the file path within that project.',
+          "Unpin a gem by removing version constraints from Gemfile. Optionally specify a project name to resolve the file path within that project.",
         inputSchema: GemUnpinSchema.shape,
       },
       async (args) => this.gemPinTool.executeUnpin(args)
@@ -218,10 +218,10 @@ export class GemsServer {
 
     // Register add_gem_to_gemfile tool
     this.server.registerTool(
-      'add_gem_to_gemfile',
+      "add_gem_to_gemfile",
       {
         description:
-          'Add a gem to a Gemfile with optional version constraints, groups, and custom options. Optionally specify a project name to resolve the file path within that project.',
+          "Add a gem to a Gemfile with optional version constraints, groups, and custom options. Optionally specify a project name to resolve the file path within that project.",
         inputSchema: GemAddToGemfileSchema.shape,
       },
       async (args) => this.gemAddTool.executeAddToGemfile(args)
@@ -229,10 +229,10 @@ export class GemsServer {
 
     // Register add_gem_to_gemspec tool
     this.server.registerTool(
-      'add_gem_to_gemspec',
+      "add_gem_to_gemspec",
       {
         description:
-          'Add a dependency to a .gemspec file with optional version constraints. Can add runtime or development dependencies. Optionally specify a project name to resolve the file path within that project.',
+          "Add a dependency to a .gemspec file with optional version constraints. Can add runtime or development dependencies. Optionally specify a project name to resolve the file path within that project.",
         inputSchema: GemAddToGemspecSchema.shape,
       },
       async (args) => this.gemAddTool.executeAddToGemspec(args)
@@ -240,10 +240,10 @@ export class GemsServer {
 
     // Register bundle_install tool
     this.server.registerTool(
-      'bundle_install',
+      "bundle_install",
       {
         description:
-          'Run bundle install in a project directory with configurable options such as deployment mode, excluded groups, and custom Gemfile paths. Optionally specify a project name to run within that project.',
+          "Run bundle install in a project directory with configurable options such as deployment mode, excluded groups, and custom Gemfile paths. Optionally specify a project name to run within that project.",
         inputSchema: BundleInstallSchema.shape,
       },
       async (args) => this.bundleInstallTool.execute(args)
@@ -251,10 +251,10 @@ export class GemsServer {
 
     // Register bundle_check tool
     this.server.registerTool(
-      'bundle_check',
+      "bundle_check",
       {
         description:
-          'Run bundle check to verify that all gems in Gemfile.lock are installed and available. Optionally specify a project name to run within that project.',
+          "Run bundle check to verify that all gems in Gemfile.lock are installed and available. Optionally specify a project name to run within that project.",
         inputSchema: BundleCheckSchema.shape,
       },
       async (args) => this.bundleToolsManager.executeCheck(args)
@@ -262,10 +262,10 @@ export class GemsServer {
 
     // Register bundle_show tool
     this.server.registerTool(
-      'bundle_show',
+      "bundle_show",
       {
         description:
-          'Show information about installed gems. Can show all gems or details for a specific gem, with options for paths and outdated gem information. Optionally specify a project name to run within that project.',
+          "Show information about installed gems. Can show all gems or details for a specific gem, with options for paths and outdated gem information. Optionally specify a project name to run within that project.",
         inputSchema: BundleShowSchema.shape,
       },
       async (args) => this.bundleToolsManager.executeShow(args)
@@ -273,10 +273,10 @@ export class GemsServer {
 
     // Register bundle_audit tool
     this.server.registerTool(
-      'bundle_audit',
+      "bundle_audit",
       {
         description:
-          'Run bundle audit to check for security vulnerabilities in installed gems. Requires bundler-audit gem to be installed. Optionally specify a project name to run within that project.',
+          "Run bundle audit to check for security vulnerabilities in installed gems. Requires bundler-audit gem to be installed. Optionally specify a project name to run within that project.",
         inputSchema: BundleAuditSchema.shape,
       },
       async (args) => this.bundleToolsManager.executeAudit(args)
@@ -284,10 +284,10 @@ export class GemsServer {
 
     // Register bundle_clean tool
     this.server.registerTool(
-      'bundle_clean',
+      "bundle_clean",
       {
         description:
-          'Run bundle clean to remove gems not specified in Gemfile.lock. Supports dry-run and force options. Optionally specify a project name to run within that project.',
+          "Run bundle clean to remove gems not specified in Gemfile.lock. Supports dry-run and force options. Optionally specify a project name to run within that project.",
         inputSchema: BundleCleanSchema.shape,
       },
       async (args) => this.bundleToolsManager.executeClean(args)
@@ -298,26 +298,26 @@ export class GemsServer {
     // Error handling is managed through try-catch blocks in tool handlers
 
     // Handle uncaught exceptions
-    process.on('uncaughtException', (error) => {
-      console.error('[Uncaught Exception]', error);
+    process.on("uncaughtException", (error) => {
+      console.error("[Uncaught Exception]", error);
       process.exit(1);
     });
 
     // Handle unhandled promise rejections
-    process.on('unhandledRejection', (reason, promise) => {
-      console.error('[Unhandled Rejection]', reason, 'at', promise);
+    process.on("unhandledRejection", (reason, promise) => {
+      console.error("[Unhandled Rejection]", reason, "at", promise);
       process.exit(1);
     });
 
     // Graceful shutdown
-    process.on('SIGINT', async () => {
-      console.log('Received SIGINT, shutting down gracefully...');
+    process.on("SIGINT", async () => {
+      console.log("Received SIGINT, shutting down gracefully...");
       await this.cleanup();
       process.exit(0);
     });
 
-    process.on('SIGTERM', async () => {
-      console.log('Received SIGTERM, shutting down gracefully...');
+    process.on("SIGTERM", async () => {
+      console.log("Received SIGTERM, shutting down gracefully...");
       await this.cleanup();
       process.exit(0);
     });
@@ -334,16 +334,16 @@ export class GemsServer {
       // Close server if needed
       // The MCP SDK handles server cleanup automatically
 
-      console.log('Cleanup completed');
+      console.log("Cleanup completed");
     } catch (error) {
-      console.error('Error during cleanup:', error);
+      console.error("Error during cleanup:", error);
     }
   }
 
   async start(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('Gems MCP Server running on stdio');
+    console.error("Gems MCP Server running on stdio");
   }
 
   // Expose server for testing
@@ -372,18 +372,18 @@ function getPackageInfo(): { version: string; description: string } {
   try {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    const packagePath = join(__dirname, '..', 'package.json');
-    const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
+    const packagePath = join(__dirname, "..", "package.json");
+    const packageJson = JSON.parse(readFileSync(packagePath, "utf8"));
     return {
       version: packageJson.version,
       description: packageJson.description,
     };
-  } catch (error) {
+  } catch (_error) {
     // Fallback values if package.json can't be read
     return {
-      version: '0.1.2',
+      version: "0.1.2",
       description:
-        'MCP server for interacting with RubyGems.org API, Gemfiles, and gemspecs',
+        "MCP server for interacting with RubyGems.org API, Gemfiles, and gemspecs",
     };
   }
 }
@@ -393,16 +393,16 @@ function setupCommander(): Command {
   const { version, description } = getPackageInfo();
 
   program
-    .name('gems-mcp')
+    .name("gems-mcp")
     .description(description)
     .version(version)
     .option(
-      '-p, --project <project...>',
-      'Configure projects. Format: name:path or path (can be specified multiple times)'
+      "-p, --project <project...>",
+      "Configure projects. Format: name:path or path (can be specified multiple times)"
     )
     .option(
-      '-q, --quotes <style>',
-      'Quote style for Gemfile and Gemspec entries (single or double)'
+      "-q, --quotes <style>",
+      "Quote style for Gemfile and Gemspec entries (single or double)"
     )
     .parse();
 
@@ -420,12 +420,12 @@ function parseCommandLineArgs(program: Command): {
   // Parse project configurations
   if (options.project) {
     for (const projectDef of options.project) {
-      const colonIndex = projectDef.indexOf(':');
+      const colonIndex = projectDef.indexOf(":");
 
       if (colonIndex === -1) {
         // If no colon, treat the whole thing as a path with name derived from directory name
         const path = projectDef;
-        const name = path.split('/').pop() || 'unnamed';
+        const name = path.split("/").pop() || "unnamed";
         projects.push({ name, path });
       } else {
         // Split by first colon to get name:path
@@ -453,7 +453,7 @@ function parseCommandLineArgs(program: Command): {
         gemfile: quoteStyle,
         gemspec: quoteStyle,
       };
-    } catch (error) {
+    } catch (_error) {
       console.error(
         `Invalid quotes option: ${options.quotes}. Expected 'single' or 'double'`
       );
@@ -484,15 +484,15 @@ async function main(): Promise<void> {
 
     if (projectConfigs.length > 0) {
       console.error(
-        `Gems MCP Server running with ${projectConfigs.length} configured project(s): ${projectManager.getProjectNames().join(', ')}`
+        `Gems MCP Server running with ${projectConfigs.length} configured project(s): ${projectManager.getProjectNames().join(", ")}`
       );
     } else {
       console.error(
-        'Gems MCP Server running with default project (current directory)'
+        "Gems MCP Server running with default project (current directory)"
       );
     }
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 }
@@ -503,20 +503,20 @@ const isMainModule =
   process.argv[1] &&
   (import.meta.url === `file://${process.argv[1]}` ||
     import.meta.url.endsWith(process.argv[1]) ||
-    process.argv[1].endsWith('index.js') ||
-    process.argv[1].endsWith('gems-mcp'));
+    process.argv[1].endsWith("index.js") ||
+    process.argv[1].endsWith("gems-mcp"));
 
 if (isMainModule) {
   main().catch((error) => {
-    console.error('Failed to start server:', error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   });
 }
 
 // Export for use in other modules
-export { RubyGemsClient } from './api/client.js';
-export { ApiCache } from './api/cache.js';
-export { ChangelogFetcher } from './changelog/fetcher.js';
-export { ChangelogCache } from './changelog/cache.js';
-export * from './types.js';
-export * from './schemas.js';
+export { RubyGemsClient } from "./api/client.js";
+export { ApiCache } from "./api/cache.js";
+export { ChangelogFetcher } from "./changelog/fetcher.js";
+export { ChangelogCache } from "./changelog/cache.js";
+export * from "./types.js";
+export * from "./schemas.js";

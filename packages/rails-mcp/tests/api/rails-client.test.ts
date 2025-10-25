@@ -17,10 +17,14 @@ type MockChildProcess = EventEmitter & {
 describe("RailsClient", () => {
   let client: RailsClient;
   let tempDir: string;
+  let testCounter = 0;
 
   beforeEach(async () => {
     client = new RailsClient({ cacheEnabled: false });
-    tempDir = join(tmpdir(), `rails-client-test-${Date.now()}`);
+    tempDir = join(
+      tmpdir(),
+      `rails-client-test-${Date.now()}-${testCounter++}`
+    );
     await fs.mkdir(tempDir, { recursive: true });
   });
 
@@ -263,6 +267,8 @@ describe("RailsClient", () => {
         join(tempDir, "config", "application.rb"),
         "class Application < Rails::Application; end"
       );
+      // Reset mocks before each test in this block
+      vi.mocked(spawn).mockReset();
     });
 
     it("should parse generators list successfully", async () => {
@@ -382,6 +388,8 @@ Active Record:
         join(tempDir, "config", "application.rb"),
         "class Application < Rails::Application; end"
       );
+      // Reset mocks before each test in this block
+      vi.mocked(spawn).mockReset();
     });
 
     it("should parse generator help successfully", async () => {
@@ -429,6 +437,8 @@ Options:
         join(tempDir, "config", "application.rb"),
         "class Application < Rails::Application; end"
       );
+      // Reset mocks before each test in this block
+      vi.mocked(spawn).mockReset();
     });
 
     it("should parse generate output successfully", async () => {
@@ -578,6 +588,8 @@ Options:
         join(tempDir, "config", "application.rb"),
         "class Application < Rails::Application; end"
       );
+      // Reset mocks before each test in this block
+      vi.mocked(spawn).mockReset();
     });
 
     it("should parse destroy output successfully", async () => {

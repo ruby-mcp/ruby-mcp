@@ -2,7 +2,7 @@
  * Response caching mechanism for RubyGems API calls
  */
 
-import type { CacheEntry } from '../types.js';
+import type { CacheEntry } from "../types.js";
 
 export class ApiCache {
   private cache = new Map<string, CacheEntry<unknown>>();
@@ -85,7 +85,7 @@ export class ApiCache {
     const sortedParams = Object.keys(params)
       .sort()
       .map((key) => `${key}=${encodeURIComponent(String(params[key]))}`)
-      .join('&');
+      .join("&");
 
     return `${baseKey}?${sortedParams}`;
   }

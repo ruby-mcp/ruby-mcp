@@ -2,19 +2,19 @@
  * MCP tool for executing Rails destroy commands
  */
 
-import { validateInput } from '../utils/validation.js';
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { RailsClient } from "../api/rails-client.js";
+import type { ProjectManager } from "../project-manager.js";
+import { type DestroyInput, DestroySchema } from "../schemas.js";
+import type { DestroyOutput } from "../types.js";
 import {
-  createStructuredResult,
-  createStructuredError,
   createExecutionContext,
-  generateHumanReadableSummary,
+  createStructuredError,
+  createStructuredResult,
   formatFileList,
-} from '../utils/structured-output.js';
-import { DestroySchema, type DestroyInput } from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { ProjectManager } from '../project-manager.js';
-import type { RailsClient } from '../api/rails-client.js';
-import type { DestroyOutput } from '../types.js';
+  generateHumanReadableSummary,
+} from "../utils/structured-output.js";
+import { validateInput } from "../utils/validation.js";
 
 export interface DestroyToolOptions {
   client: RailsClient;
@@ -35,8 +35,8 @@ export class DestroyTool {
     const validation = validateInput(DestroySchema, args);
     if (!validation.success) {
       return createStructuredError(
-        'destroy',
-        'validation_error',
+        "destroy",
+        "validation_error",
         validation.error
       );
     }
@@ -56,9 +56,9 @@ export class DestroyTool {
         : process.cwd();
     } catch (error) {
       return createStructuredError(
-        'destroy',
-        'project_resolution_error',
-        error instanceof Error ? error.message : 'Unknown error',
+        "destroy",
+        "project_resolution_error",
+        error instanceof Error ? error.message : "Unknown error",
         { project }
       );
     }
@@ -69,8 +69,8 @@ export class DestroyTool {
 
       if (!projectInfo.isRailsProject) {
         return createStructuredError(
-          'destroy',
-          'not_rails_project',
+          "destroy",
+          "not_rails_project",
           `Directory ${workingDirectory} does not contain a Rails application`,
           createExecutionContext(projectInfo, project)
         );
@@ -86,8 +86,8 @@ export class DestroyTool {
 
       if (!response.success) {
         return createStructuredError(
-          'destroy',
-          'destroyer_execution_error',
+          "destroy",
+          "destroyer_execution_error",
           `Failed to execute destroy command for '${generator_name}': ${response.error}`,
           createExecutionContext(projectInfo, project)
         );
@@ -97,8 +97,8 @@ export class DestroyTool {
 
       if (!result.success) {
         return createStructuredError(
-          'destroy',
-          'destroyer_failure',
+          "destroy",
+          "destroyer_failure",
           `Destroy command failed: ${result.error}`,
           createExecutionContext(projectInfo, project),
           result.output
@@ -108,7 +108,7 @@ export class DestroyTool {
       // Create structured output
       const output: DestroyOutput = {
         success: true,
-        action: 'destroy',
+        action: "destroy",
         summary: `Successfully executed destroy for '${generator_name}' - ${result.filesRemoved.length} files removed, ${result.filesModified.length} files modified`,
         context: createExecutionContext(projectInfo, project),
         data: {
@@ -130,30 +130,30 @@ export class DestroyTool {
 
       // Generate human-readable text
       let humanText = generateHumanReadableSummary(output);
-      humanText += formatFileList('Files Removed', result.filesRemoved);
-      humanText += formatFileList('Files Modified', result.filesModified);
+      humanText += formatFileList("Files Removed", result.filesRemoved);
+      humanText += formatFileList("Files Modified", result.filesModified);
 
       if (result.output) {
-        humanText += '\n**Command Output:**\n```\n' + result.output + '\n```\n';
+        humanText += `\n**Command Output:**\n\`\`\`\n${result.output}\n\`\`\`\n`;
       }
 
-      humanText += '\n🗑️ **Destruction Summary:**\n';
+      humanText += "\n🗑️ **Destruction Summary:**\n";
       humanText += `- Generator: \`${generator_name}\`\n`;
-      humanText += `- Arguments: ${genArgs.length > 0 ? genArgs.map((a) => `\`${a}\``).join(', ') : 'None'}\n`;
+      humanText += `- Arguments: ${genArgs.length > 0 ? genArgs.map((a) => `\`${a}\``).join(", ") : "None"}\n`;
       humanText += `- Options: ${
         Object.keys(options).length > 0
           ? Object.keys(options)
               .map((o) => `\`--${o}\``)
-              .join(', ')
-          : 'None'
+              .join(", ")
+          : "None"
       }\n`;
 
       return createStructuredResult(output, humanText);
     } catch (error) {
       return createStructuredError(
-        'destroy',
-        'unexpected_error',
-        error instanceof Error ? error.message : 'Unknown error occurred',
+        "destroy",
+        "unexpected_error",
+        error instanceof Error ? error.message : "Unknown error occurred",
         { workingDirectory, project }
       );
     }

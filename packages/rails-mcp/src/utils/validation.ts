@@ -2,7 +2,7 @@
  * Input validation utilities
  */
 
-import { ZodSchema, ZodError } from 'zod';
+import { ZodError, type ZodSchema } from "zod";
 
 export interface ValidationResult<T> {
   success: boolean;
@@ -24,7 +24,7 @@ export function validateInput<T>(
   } catch (error) {
     if (error instanceof ZodError) {
       const issues = error.issues.map((issue) => {
-        const path = issue.path.length > 0 ? issue.path.join('.') : 'root';
+        const path = issue.path.length > 0 ? issue.path.join(".") : "root";
         return `${path}: ${issue.message}`;
       });
 
@@ -38,13 +38,13 @@ export function validateInput<T>(
     return {
       success: false,
       error:
-        error instanceof Error ? error.message : 'Unknown validation error',
+        error instanceof Error ? error.message : "Unknown validation error",
     };
   }
 }
 
 export function isValidGeneratorName(name: string): boolean {
-  if (!name || typeof name !== 'string') {
+  if (!name || typeof name !== "string") {
     return false;
   }
 
@@ -54,27 +54,24 @@ export function isValidGeneratorName(name: string): boolean {
 }
 
 export function sanitizeGeneratorName(name: string): string {
-  if (!name || typeof name !== 'string') {
-    return '';
+  if (!name || typeof name !== "string") {
+    return "";
   }
 
   return name.trim().slice(0, 100);
 }
 
-export function validateBoolean(
-  value: unknown,
-  defaultValue: boolean = false
-): boolean {
-  if (typeof value === 'boolean') {
+export function validateBoolean(value: unknown, defaultValue = false): boolean {
+  if (typeof value === "boolean") {
     return value;
   }
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     const lower = value.toLowerCase();
-    if (lower === 'true' || lower === '1' || lower === 'yes') {
+    if (lower === "true" || lower === "1" || lower === "yes") {
       return true;
     }
-    if (lower === 'false' || lower === '0' || lower === 'no') {
+    if (lower === "false" || lower === "0" || lower === "no") {
       return false;
     }
   }

@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { GemsServer } from '../../src/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { GemsServer } from "../../src/index.js";
 
-describe('Server Lifecycle E2E Tests', () => {
+describe("Server Lifecycle E2E Tests", () => {
   let server: GemsServer;
   let processExitSpy: ReturnType<typeof vi.spyOn>;
   let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
@@ -16,23 +16,27 @@ describe('Server Lifecycle E2E Tests', () => {
 
   beforeEach(() => {
     originalListeners = {
-      uncaughtException: [...process.listeners('uncaughtException')],
-      unhandledRejection: [...process.listeners('unhandledRejection')],
-      SIGINT: [...process.listeners('SIGINT')],
-      SIGTERM: [...process.listeners('SIGTERM')],
+      uncaughtException: [...process.listeners("uncaughtException")],
+      unhandledRejection: [...process.listeners("unhandledRejection")],
+      SIGINT: [...process.listeners("SIGINT")],
+      SIGTERM: [...process.listeners("SIGTERM")],
     };
 
-    process.removeAllListeners('uncaughtException');
-    process.removeAllListeners('unhandledRejection');
-    process.removeAllListeners('SIGINT');
-    process.removeAllListeners('SIGTERM');
+    process.removeAllListeners("uncaughtException");
+    process.removeAllListeners("unhandledRejection");
+    process.removeAllListeners("SIGINT");
+    process.removeAllListeners("SIGTERM");
 
     server = new GemsServer();
-    processExitSpy = vi
-      .spyOn(process, 'exit')
-      .mockImplementation((() => {}) as never);
-    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    processExitSpy = vi.spyOn(process, "exit").mockImplementation((() => {
+      /* Mock implementation - intentionally empty */
+    }) as never);
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
+      /* Mock implementation - intentionally empty */
+    });
+    consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {
+      /* Mock implementation - intentionally empty */
+    });
   });
 
   afterEach(() => {
@@ -41,33 +45,33 @@ describe('Server Lifecycle E2E Tests', () => {
       client.clearCache();
     }
 
-    process.removeAllListeners('uncaughtException');
-    process.removeAllListeners('unhandledRejection');
-    process.removeAllListeners('SIGINT');
-    process.removeAllListeners('SIGTERM');
+    process.removeAllListeners("uncaughtException");
+    process.removeAllListeners("unhandledRejection");
+    process.removeAllListeners("SIGINT");
+    process.removeAllListeners("SIGTERM");
 
-    originalListeners.uncaughtException.forEach((listener) => {
-      process.on('uncaughtException', listener);
-    });
-    originalListeners.unhandledRejection.forEach((listener) => {
-      process.on('unhandledRejection', listener);
-    });
-    originalListeners.SIGINT.forEach((listener) => {
-      process.on('SIGINT', listener);
-    });
-    originalListeners.SIGTERM.forEach((listener) => {
-      process.on('SIGTERM', listener);
-    });
+    for (const listener of originalListeners.uncaughtException) {
+      process.on("uncaughtException", listener);
+    }
+    for (const listener of originalListeners.unhandledRejection) {
+      process.on("unhandledRejection", listener);
+    }
+    for (const listener of originalListeners.SIGINT) {
+      process.on("SIGINT", listener);
+    }
+    for (const listener of originalListeners.SIGTERM) {
+      process.on("SIGTERM", listener);
+    }
 
     processExitSpy.mockRestore();
     consoleErrorSpy.mockRestore();
     consoleLogSpy.mockRestore();
   });
 
-  describe('Server Startup', () => {
-    it('should start server with stdio transport', async () => {
+  describe("Server Startup", () => {
+    it("should start server with stdio transport", async () => {
       const connectSpy = vi
-        .spyOn(server.getServer(), 'connect')
+        .spyOn(server.getServer(), "connect")
         .mockResolvedValue();
 
       await server.start();
@@ -75,87 +79,89 @@ describe('Server Lifecycle E2E Tests', () => {
       expect(connectSpy).toHaveBeenCalledOnce();
       expect(connectSpy).toHaveBeenCalledWith(expect.any(StdioServerTransport));
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Gems MCP Server running on stdio'
+        "Gems MCP Server running on stdio"
       );
 
       connectSpy.mockRestore();
     });
   });
 
-  describe('Error Handling', () => {
-    it('should handle uncaught exceptions', () => {
-      const error = new Error('Test uncaught exception');
+  describe("Error Handling", () => {
+    it("should handle uncaught exceptions", () => {
+      const error = new Error("Test uncaught exception");
 
-      process.emit('uncaughtException', error);
+      process.emit("uncaughtException", error);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[Uncaught Exception]',
+        "[Uncaught Exception]",
         error
       );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
 
-    it('should handle unhandled promise rejections', () => {
-      const reason = 'Test rejection reason';
-      const promise = Promise.reject(reason).catch(() => {});
+    it("should handle unhandled promise rejections", () => {
+      const reason = "Test rejection reason";
+      const promise = Promise.reject(reason).catch(() => {
+        /* Intentionally empty to prevent unhandled rejection */
+      });
 
-      process.emit('unhandledRejection', reason, promise);
+      process.emit("unhandledRejection", reason, promise);
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[Unhandled Rejection]',
+        "[Unhandled Rejection]",
         reason,
-        'at',
+        "at",
         promise
       );
       expect(processExitSpy).toHaveBeenCalledWith(1);
     });
   });
 
-  describe('Graceful Shutdown', () => {
-    it('should handle SIGINT signal', async () => {
-      const clearCacheSpy = vi.spyOn(server.getClient(), 'clearCache');
+  describe("Graceful Shutdown", () => {
+    it("should handle SIGINT signal", async () => {
+      const clearCacheSpy = vi.spyOn(server.getClient(), "clearCache");
 
-      process.emit('SIGINT');
-
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Received SIGINT, shutting down gracefully...'
-      );
-      expect(clearCacheSpy).toHaveBeenCalled();
-      expect(consoleLogSpy).toHaveBeenCalledWith('Cleanup completed');
-      expect(processExitSpy).toHaveBeenCalledWith(0);
-    });
-
-    it('should handle SIGTERM signal', async () => {
-      const clearCacheSpy = vi.spyOn(server.getClient(), 'clearCache');
-
-      process.emit('SIGTERM');
+      process.emit("SIGINT");
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        'Received SIGTERM, shutting down gracefully...'
+        "Received SIGINT, shutting down gracefully..."
       );
       expect(clearCacheSpy).toHaveBeenCalled();
-      expect(consoleLogSpy).toHaveBeenCalledWith('Cleanup completed');
+      expect(consoleLogSpy).toHaveBeenCalledWith("Cleanup completed");
       expect(processExitSpy).toHaveBeenCalledWith(0);
     });
 
-    it('should handle cleanup errors gracefully', async () => {
+    it("should handle SIGTERM signal", async () => {
+      const clearCacheSpy = vi.spyOn(server.getClient(), "clearCache");
+
+      process.emit("SIGTERM");
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        "Received SIGTERM, shutting down gracefully..."
+      );
+      expect(clearCacheSpy).toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalledWith("Cleanup completed");
+      expect(processExitSpy).toHaveBeenCalledWith(0);
+    });
+
+    it("should handle cleanup errors gracefully", async () => {
       const clearCacheSpy = vi
-        .spyOn(server.getClient(), 'clearCache')
+        .spyOn(server.getClient(), "clearCache")
         .mockImplementation(() => {
-          throw new Error('Cleanup error');
+          throw new Error("Cleanup error");
         });
 
-      process.emit('SIGINT');
+      process.emit("SIGINT");
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       expect(clearCacheSpy).toHaveBeenCalled();
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error during cleanup:',
+        "Error during cleanup:",
         expect.any(Error)
       );
       expect(processExitSpy).toHaveBeenCalledWith(0);
@@ -164,18 +170,18 @@ describe('Server Lifecycle E2E Tests', () => {
     });
   });
 
-  describe('Cache Management', () => {
-    it('should initialize client with caching enabled', () => {
+  describe("Cache Management", () => {
+    it("should initialize client with caching enabled", () => {
       const client = server.getClient();
       expect(client).toBeDefined();
       expect(() => client.clearCache()).not.toThrow();
     });
 
-    it('should clear cache on cleanup', async () => {
+    it("should clear cache on cleanup", async () => {
       const client = server.getClient();
-      const clearCacheSpy = vi.spyOn(client, 'clearCache');
+      const clearCacheSpy = vi.spyOn(client, "clearCache");
 
-      process.emit('SIGINT');
+      process.emit("SIGINT");
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -185,13 +191,13 @@ describe('Server Lifecycle E2E Tests', () => {
     });
   });
 
-  describe('Process Event Listeners', () => {
-    it('should register all required process event listeners', () => {
+  describe("Process Event Listeners", () => {
+    it("should register all required process event listeners", () => {
       const listeners = {
-        uncaughtException: process.listeners('uncaughtException'),
-        unhandledRejection: process.listeners('unhandledRejection'),
-        SIGINT: process.listeners('SIGINT'),
-        SIGTERM: process.listeners('SIGTERM'),
+        uncaughtException: process.listeners("uncaughtException"),
+        unhandledRejection: process.listeners("unhandledRejection"),
+        SIGINT: process.listeners("SIGINT"),
+        SIGTERM: process.listeners("SIGTERM"),
       };
 
       expect(listeners.uncaughtException.length).toBeGreaterThan(0);
@@ -201,17 +207,17 @@ describe('Server Lifecycle E2E Tests', () => {
     });
   });
 
-  describe('Server State', () => {
-    it('should expose server instance for testing', () => {
+  describe("Server State", () => {
+    it("should expose server instance for testing", () => {
       const mcpServer = server.getServer();
       expect(mcpServer).toBeDefined();
-      expect(mcpServer.constructor.name).toBe('McpServer');
+      expect(mcpServer.constructor.name).toBe("McpServer");
     });
 
-    it('should expose client instance for testing', () => {
+    it("should expose client instance for testing", () => {
       const client = server.getClient();
       expect(client).toBeDefined();
-      expect(client.constructor.name).toBe('RubyGemsClient');
+      expect(client.constructor.name).toBe("RubyGemsClient");
     });
   });
 });

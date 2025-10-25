@@ -2,19 +2,19 @@
  * MCP tool for listing Rails generators
  */
 
-import { validateInput } from '../utils/validation.js';
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { RailsClient } from "../api/rails-client.js";
+import type { ProjectManager } from "../project-manager.js";
+import { type ListGeneratorsInput, ListGeneratorsSchema } from "../schemas.js";
+import type { GeneratorsListOutput } from "../types.js";
 import {
-  createStructuredResult,
-  createStructuredError,
   createExecutionContext,
-  generateHumanReadableSummary,
+  createStructuredError,
+  createStructuredResult,
   formatGeneratorsList,
-} from '../utils/structured-output.js';
-import { ListGeneratorsSchema, type ListGeneratorsInput } from '../schemas.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { ProjectManager } from '../project-manager.js';
-import type { RailsClient } from '../api/rails-client.js';
-import type { GeneratorsListOutput } from '../types.js';
+  generateHumanReadableSummary,
+} from "../utils/structured-output.js";
+import { validateInput } from "../utils/validation.js";
 
 export interface GeneratorsToolOptions {
   client: RailsClient;
@@ -35,8 +35,8 @@ export class GeneratorsTool {
     const validation = validateInput(ListGeneratorsSchema, args);
     if (!validation.success) {
       return createStructuredError(
-        'list_generators',
-        'validation_error',
+        "list_generators",
+        "validation_error",
         validation.error
       );
     }
@@ -51,9 +51,9 @@ export class GeneratorsTool {
         : process.cwd();
     } catch (error) {
       return createStructuredError(
-        'list_generators',
-        'project_resolution_error',
-        error instanceof Error ? error.message : 'Unknown error',
+        "list_generators",
+        "project_resolution_error",
+        error instanceof Error ? error.message : "Unknown error",
         { project }
       );
     }
@@ -64,8 +64,8 @@ export class GeneratorsTool {
 
       if (!projectInfo.isRailsProject) {
         return createStructuredError(
-          'list_generators',
-          'not_rails_project',
+          "list_generators",
+          "not_rails_project",
           `Directory ${workingDirectory} does not contain a Rails application`,
           createExecutionContext(projectInfo, project)
         );
@@ -76,8 +76,8 @@ export class GeneratorsTool {
 
       if (!response.success) {
         return createStructuredError(
-          'list_generators',
-          'rails_command_error',
+          "list_generators",
+          "rails_command_error",
           `Failed to list generators: ${response.error}`,
           createExecutionContext(projectInfo, project)
         );
@@ -88,7 +88,7 @@ export class GeneratorsTool {
       // Group by namespace
       const groupedByNamespace: Record<string, typeof generators> = {};
       for (const generator of generators) {
-        const namespace = generator.namespace || 'Rails';
+        const namespace = generator.namespace || "Rails";
         if (!groupedByNamespace[namespace]) {
           groupedByNamespace[namespace] = [];
         }
@@ -98,10 +98,10 @@ export class GeneratorsTool {
       // Create structured output
       const output: GeneratorsListOutput = {
         success: true,
-        action: 'list_generators',
+        action: "list_generators",
         summary:
           generators.length === 0
-            ? 'No generators found in this Rails project'
+            ? "No generators found in this Rails project"
             : `Successfully listed ${generators.length} generators`,
         context: createExecutionContext(projectInfo, project),
         data: {
@@ -119,18 +119,17 @@ export class GeneratorsTool {
       let humanText = generateHumanReadableSummary(output);
 
       if (generators.length > 0) {
+        humanText += `\n${formatGeneratorsList(generators, groupedByNamespace)}`;
         humanText +=
-          '\n' + formatGeneratorsList(generators, groupedByNamespace);
-        humanText +=
-          '\n💡 **Tip:** Use `get_generator_help` tool with a specific generator name to get detailed usage information.';
+          "\n💡 **Tip:** Use `get_generator_help` tool with a specific generator name to get detailed usage information.";
       }
 
       return createStructuredResult(output, humanText);
     } catch (error) {
       return createStructuredError(
-        'list_generators',
-        'unexpected_error',
-        error instanceof Error ? error.message : 'Unknown error occurred',
+        "list_generators",
+        "unexpected_error",
+        error instanceof Error ? error.message : "Unknown error occurred",
         { workingDirectory, project }
       );
     }

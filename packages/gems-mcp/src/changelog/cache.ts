@@ -4,7 +4,7 @@
  * Uses a longer TTL than API cache since changelogs don't change frequently
  */
 
-import type { CacheEntry } from '../types.js';
+import type { CacheEntry } from "../types.js";
 
 export interface ChangelogCacheEntry {
   content: string;
