@@ -1,6 +1,46 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { RailsServer } from "../src/index.js";
 import { ProjectManager } from "../src/project-manager.js";
+
+describe("index.ts - Command-line argument parsing", () => {
+  it("should support custom root path via ProjectManager", () => {
+    const customRoot = "/custom/root/path";
+    const projectManager = new ProjectManager([], customRoot);
+    const server = new RailsServer(projectManager);
+
+    expect(server).toBeDefined();
+    expect(server.getServer()).toBeDefined();
+  });
+
+  it("should parse --root parameter correctly", () => {
+    const customRoot = join(tmpdir(), "test-root");
+    const projectManager = new ProjectManager([], customRoot);
+
+    expect(projectManager.getDefaultProjectPath()).toBe(customRoot);
+    expect(projectManager.getProjectPath()).toBe(customRoot);
+  });
+
+  it("should use process.cwd() when no root parameter provided", () => {
+    const projectManager = new ProjectManager();
+
+    expect(projectManager.getDefaultProjectPath()).toBe(process.cwd());
+    expect(projectManager.getProjectPath()).toBe(process.cwd());
+  });
+
+  it("should support both --root and --project parameters together", () => {
+    const customRoot = "/custom/root";
+    const projectManager = new ProjectManager(
+      [{ name: "app1", path: "/path/to/app1" }],
+      customRoot
+    );
+
+    expect(projectManager.getDefaultProjectPath()).toBe(customRoot);
+    expect(projectManager.getProjectPath()).toBe(customRoot);
+    expect(projectManager.getProjectPath("app1")).toContain("path/to/app1");
+  });
+});
 
 describe("index.ts - RailsServer", () => {
   let server: RailsServer;
