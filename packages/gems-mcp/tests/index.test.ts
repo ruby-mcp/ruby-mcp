@@ -1,4 +1,57 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { GemsServer } from "../src/index.js";
+import { ProjectManager } from "../src/project-manager.js";
+
+describe("GemsServer", () => {
+  it("should initialize with custom root path via ProjectManager", () => {
+    const customRoot = "/custom/root/path";
+    const projectManager = new ProjectManager([], customRoot);
+    const server = new GemsServer(projectManager);
+
+    expect(server).toBeDefined();
+    expect(server.getServer()).toBeDefined();
+  });
+
+  it("should initialize with default root when no ProjectManager provided", () => {
+    const server = new GemsServer();
+
+    expect(server).toBeDefined();
+    expect(server.getServer()).toBeDefined();
+  });
+});
+
+describe("index.ts command-line argument parsing", () => {
+  it("should parse --root parameter correctly", async () => {
+    // We can't directly test parseCommandLineArgs since it's not exported,
+    // but we can test that ProjectManager receives the correct default path
+    const customRoot = join(tmpdir(), "test-root");
+    const projectManager = new ProjectManager([], customRoot);
+
+    expect(projectManager.getDefaultProjectPath()).toBe(customRoot);
+    expect(projectManager.getProjectPath()).toBe(customRoot);
+  });
+
+  it("should use process.cwd() when no root parameter provided", () => {
+    const projectManager = new ProjectManager();
+
+    expect(projectManager.getDefaultProjectPath()).toBe(process.cwd());
+    expect(projectManager.getProjectPath()).toBe(process.cwd());
+  });
+
+  it("should support both --root and --project parameters together", () => {
+    const customRoot = "/custom/root";
+    const projectManager = new ProjectManager(
+      [{ name: "app1", path: "/path/to/app1" }],
+      customRoot
+    );
+
+    expect(projectManager.getDefaultProjectPath()).toBe(customRoot);
+    expect(projectManager.getProjectPath()).toBe(customRoot);
+    expect(projectManager.getProjectPath("app1")).toContain("path/to/app1");
+  });
+});
 
 describe("index.ts main execution", () => {
   let originalArgv: string[];

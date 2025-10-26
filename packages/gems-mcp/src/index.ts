@@ -363,6 +363,7 @@ export class GemsServer {
 interface ProgramOptions {
   project?: string[];
   quotes?: string;
+  root?: string;
 }
 
 /**
@@ -404,6 +405,10 @@ function setupCommander(): Command {
       "-q, --quotes <style>",
       "Quote style for Gemfile and Gemspec entries (single or double)"
     )
+    .option(
+      "-r, --root <path>",
+      "Set the root directory for the default project (defaults to current working directory)"
+    )
     .parse();
 
   return program;
@@ -412,10 +417,12 @@ function setupCommander(): Command {
 function parseCommandLineArgs(program: Command): {
   projects: ProjectConfig[];
   quoteConfig: QuoteConfig;
+  rootPath?: string;
 } {
   const options = program.opts<ProgramOptions>();
   const projects: ProjectConfig[] = [];
   let quoteConfig = { ...DEFAULT_QUOTE_CONFIG };
+  const rootPath = options.root;
 
   // Parse project configurations
   if (options.project) {
@@ -461,7 +468,7 @@ function parseCommandLineArgs(program: Command): {
     }
   }
 
-  return { projects, quoteConfig };
+  return { projects, quoteConfig, rootPath };
 }
 
 // Main execution
@@ -469,11 +476,14 @@ async function main(): Promise<void> {
   try {
     // Setup and parse command-line arguments with Commander
     const program = setupCommander();
-    const { projects: projectConfigs, quoteConfig } =
-      parseCommandLineArgs(program);
+    const {
+      projects: projectConfigs,
+      quoteConfig,
+      rootPath,
+    } = parseCommandLineArgs(program);
 
     // Create project manager with configured projects
-    const projectManager = new ProjectManager(projectConfigs);
+    const projectManager = new ProjectManager(projectConfigs, rootPath);
 
     // Validate all projects are accessible
     await projectManager.validateProjects();

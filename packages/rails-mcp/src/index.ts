@@ -183,6 +183,7 @@ export class RailsServer {
  */
 interface ProgramOptions {
   project?: string[];
+  root?: string;
 }
 
 /**
@@ -220,6 +221,10 @@ function setupCommander(): Command {
       "-p, --project <project...>",
       "Configure projects. Format: name:path or path (can be specified multiple times)"
     )
+    .option(
+      "-r, --root <path>",
+      "Set the root directory for the default project (defaults to current working directory)"
+    )
     .parse();
 
   return program;
@@ -227,9 +232,11 @@ function setupCommander(): Command {
 
 function parseCommandLineArgs(program: Command): {
   projects: ProjectConfig[];
+  rootPath?: string;
 } {
   const options = program.opts<ProgramOptions>();
   const projects: ProjectConfig[] = [];
+  const rootPath = options.root;
 
   // Parse project configurations
   if (options.project) {
@@ -258,7 +265,7 @@ function parseCommandLineArgs(program: Command): {
     }
   }
 
-  return { projects };
+  return { projects, rootPath };
 }
 
 // Main execution
@@ -266,10 +273,11 @@ async function main(): Promise<void> {
   try {
     // Setup and parse command-line arguments with Commander
     const program = setupCommander();
-    const { projects: projectConfigs } = parseCommandLineArgs(program);
+    const { projects: projectConfigs, rootPath } =
+      parseCommandLineArgs(program);
 
     // Create project manager with configured projects
-    const projectManager = new ProjectManager(projectConfigs);
+    const projectManager = new ProjectManager(projectConfigs, rootPath);
 
     // Validate all projects are accessible
     await projectManager.validateProjects();
