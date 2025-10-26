@@ -1,6 +1,6 @@
 {
   "name": "@ruby-mcp/rails-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MCP server for interacting with Rails CLI - list generators, get help, and execute Rails generators",
   "type": "module",
   "main": "dist/index.js",

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-10-26
+
+### Added
+- Gem changelog fetching tool for retrieving CHANGELOG.md files from RubyGems.org
+
+### Changed
+- Migrated from ESLint/Prettier to Biome for code formatting and linting with double quote enforcement
+- Improved TypeScript type safety by removing all linting errors and proper type definitions
+- Enhanced test coverage to achieve 90%+ across all packages
+
+### Fixed
+- Code formatting and style consistency across the codebase
+
 ## [0.2.0] - 2024-12-25
 
 ### Added
@@ -70,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TSUP for building
 - 90%+ test coverage requirement
 
-[Unreleased]: https://github.com/anthropics/ruby-mcp/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/anthropics/ruby-mcp/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/anthropics/ruby-mcp/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/anthropics/ruby-mcp/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/anthropics/ruby-mcp/releases/tag/0.1.2

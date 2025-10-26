@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-10-26
+
+### Added
+- `--root` parameter to configure default project directory for easier project management
+
+### Changed
+- Migrated from ESLint/Prettier to Biome for code formatting and linting with double quote enforcement
+- Improved TypeScript type safety by removing all linting errors and proper type definitions
+- Enhanced test coverage to achieve 90%+ (90.57%) across the package
+- Updated CI workflow for Biome integration
+
+### Fixed
+- Flaky test timeout issues in rails-client.test.ts
+- Prettier formatting issues in test files
+- Code formatting and style consistency across the codebase
+
 ## [0.2.0] - 2024-12-25
 
 ### Added
@@ -53,5 +69,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ESLint and Prettier for code quality
 - TSUP for building
 
-[Unreleased]: https://github.com/anthropics/ruby-mcp/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/anthropics/ruby-mcp/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/anthropics/ruby-mcp/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/anthropics/ruby-mcp/releases/tag/v0.2.0
