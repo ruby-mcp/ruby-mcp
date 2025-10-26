@@ -7,7 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2024-12-25]
+## [0.3.0] - 2025-10-26
+
+### Rails MCP Package (v0.3.0)
+- Added `--root` parameter to configure default project directory
+- Migrated from ESLint/Prettier to Biome with double quote enforcement
+- Fixed flaky test timeout issues in rails-client.test.ts
+- Enhanced test coverage to 90.57%
+- Updated CI workflow for Biome integration
+- Improved TypeScript type safety across all files
+
+### Gems MCP Package (v0.3.0)
+- Added gem changelog fetching tool
+- Migrated from ESLint/Prettier to Biome with double quote enforcement
+- Improved TypeScript type safety by removing all linting errors
+- Enhanced test coverage to 90%+
+- Code formatting and style consistency improvements
+
+### Infrastructure
+- Migrated entire monorepo to Biome for unified code formatting and linting
+- Enhanced CI/CD workflow for Biome checks
+- Improved code quality standards across all packages
+- Achieved 90%+ test coverage across both packages
+
+## [0.2.0] - 2024-12-25
 
 ### Rails MCP Package (v0.2.0)
 - Initial release with Rails CLI integration
@@ -63,7 +86,7 @@ MCP server for Ruby gem management, providing tools for:
 - **Protocol**: Model Context Protocol (MCP) SDK
 - **Build**: Turbo monorepo with pnpm workspaces
 - **Testing**: Vitest with MSW for API mocking
-- **Code Quality**: ESLint, Prettier, TypeScript strict mode
+- **Code Quality**: Biome (linting and formatting), TypeScript strict mode
 - **Bundling**: TSUP for optimized builds
 
 ## Installation
