@@ -80,6 +80,9 @@ export class RailsServer {
         description:
           "List all available Rails generators in a Rails project with descriptions",
         inputSchema: ListGeneratorsSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.generatorsTool.execute(args)
     );
@@ -91,6 +94,9 @@ export class RailsServer {
         description:
           "Get detailed help for a specific Rails generator including options and usage examples",
         inputSchema: GetGeneratorHelpSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.generatorHelpTool.execute(args)
     );
@@ -102,6 +108,10 @@ export class RailsServer {
         description:
           "Execute a Rails generator with specified arguments and options",
         inputSchema: GenerateSchema.shape,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+        },
       },
       async (args) => this.generateTool.execute(args)
     );
@@ -113,6 +123,10 @@ export class RailsServer {
         description:
           "Execute a Rails destroy command with specified arguments and options",
         inputSchema: DestroySchema.shape,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+        },
       },
       async (args) => this.destroyTool.execute(args)
     );
