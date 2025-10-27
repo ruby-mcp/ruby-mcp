@@ -124,6 +124,9 @@ export class GemsServer {
       {
         description: "Search for gems on RubyGems.org by name or keywords",
         inputSchema: SearchGemsSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.searchTool.execute(args)
     );
@@ -135,6 +138,9 @@ export class GemsServer {
         description:
           "Get detailed information about a specific gem including dependencies, metadata, and links",
         inputSchema: GemDetailsSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.detailsTool.execute(args)
     );
@@ -146,6 +152,9 @@ export class GemsServer {
         description:
           "Get all versions of a specific gem, with optional prerelease filtering",
         inputSchema: GemVersionsSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.versionsTool.executeGetVersions(args)
     );
@@ -157,6 +166,9 @@ export class GemsServer {
         description:
           "Get the latest version of a specific gem, with option to include or exclude prerelease versions",
         inputSchema: LatestVersionSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.versionsTool.executeGetLatestVersion(args)
     );
@@ -168,6 +180,9 @@ export class GemsServer {
         description:
           "Get reverse dependencies for a gem (gems that depend on the specified gem)",
         inputSchema: GemDependenciesSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.versionsTool.executeGetDependencies(args)
     );
@@ -179,6 +194,9 @@ export class GemsServer {
         description:
           "Fetch the changelog for a gem from various sources (changelog URI, GitHub releases, raw files). Optionally specify a version to get version-specific changelog content.",
         inputSchema: ChangelogSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.changelogTool.execute(args)
     );
@@ -190,6 +208,9 @@ export class GemsServer {
         description:
           "Parse a Gemfile or .gemspec file to extract gem dependencies and versions as JSON. Optionally specify a project name to resolve the file path within that project.",
         inputSchema: GemfileParserSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.gemfileParserTool.execute(args)
     );
@@ -201,6 +222,10 @@ export class GemsServer {
         description:
           "Pin a gem to a specific version with configurable pinning type (~>, >=, >, <, <=, =). Optionally specify a project name to resolve the file path within that project.",
         inputSchema: GemPinSchema.shape,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+        },
       },
       async (args) => this.gemPinTool.executePin(args)
     );
@@ -212,6 +237,10 @@ export class GemsServer {
         description:
           "Unpin a gem by removing version constraints from Gemfile. Optionally specify a project name to resolve the file path within that project.",
         inputSchema: GemUnpinSchema.shape,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+        },
       },
       async (args) => this.gemPinTool.executeUnpin(args)
     );
@@ -223,6 +252,10 @@ export class GemsServer {
         description:
           "Add a gem to a Gemfile with optional version constraints, groups, and custom options. Optionally specify a project name to resolve the file path within that project.",
         inputSchema: GemAddToGemfileSchema.shape,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+        },
       },
       async (args) => this.gemAddTool.executeAddToGemfile(args)
     );
@@ -234,6 +267,10 @@ export class GemsServer {
         description:
           "Add a dependency to a .gemspec file with optional version constraints. Can add runtime or development dependencies. Optionally specify a project name to resolve the file path within that project.",
         inputSchema: GemAddToGemspecSchema.shape,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+        },
       },
       async (args) => this.gemAddTool.executeAddToGemspec(args)
     );
@@ -245,6 +282,10 @@ export class GemsServer {
         description:
           "Run bundle install in a project directory with configurable options such as deployment mode, excluded groups, and custom Gemfile paths. Optionally specify a project name to run within that project.",
         inputSchema: BundleInstallSchema.shape,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+        },
       },
       async (args) => this.bundleInstallTool.execute(args)
     );
@@ -256,6 +297,9 @@ export class GemsServer {
         description:
           "Run bundle check to verify that all gems in Gemfile.lock are installed and available. Optionally specify a project name to run within that project.",
         inputSchema: BundleCheckSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.bundleToolsManager.executeCheck(args)
     );
@@ -267,6 +311,9 @@ export class GemsServer {
         description:
           "Show information about installed gems. Can show all gems or details for a specific gem, with options for paths and outdated gem information. Optionally specify a project name to run within that project.",
         inputSchema: BundleShowSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.bundleToolsManager.executeShow(args)
     );
@@ -278,6 +325,9 @@ export class GemsServer {
         description:
           "Run bundle audit to check for security vulnerabilities in installed gems. Requires bundler-audit gem to be installed. Optionally specify a project name to run within that project.",
         inputSchema: BundleAuditSchema.shape,
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async (args) => this.bundleToolsManager.executeAudit(args)
     );
@@ -289,6 +339,10 @@ export class GemsServer {
         description:
           "Run bundle clean to remove gems not specified in Gemfile.lock. Supports dry-run and force options. Optionally specify a project name to run within that project.",
         inputSchema: BundleCleanSchema.shape,
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+        },
       },
       async (args) => this.bundleToolsManager.executeClean(args)
     );
